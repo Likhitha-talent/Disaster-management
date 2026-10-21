@@ -1,0 +1,140 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.7979241,
+              12.3303135
+            ],
+            [
+              75.8080391,
+              12.3303135
+            ],
+            [
+              75.8075793,
+              12.3357034
+            ],
+            [
+              75.7993034,
+              12.3361525
+            ],
+            [
+              75.7979241,
+              12.3303135
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "HZ-ZONE-01-RED",
+        "zone_name": "Perennial River Runout & Inundation Sector",
+        "composite_risk_score": 0.842,
+        "zone_class": "RED",
+        "zone_color": "#DC2626",
+        "zone_description": "High Hazard Zone - Permanent structural risk screening recommendation",
+        "damage_density": 0.88,
+        "flood_hydro_exposure": 0.95,
+        "slope_landslide": 0.78,
+        "land_cover_hazard": 0.7,
+        "population_density": 0.65,
+        "area_hectares": 34.2,
+        "buildings_inside": 23
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.7974643,
+              12.3361525
+            ],
+            [
+              75.8089586,
+              12.3357034
+            ],
+            [
+              75.810338,
+              12.3397458
+            ],
+            [
+              75.7983838,
+              12.3392966
+            ],
+            [
+              75.7974643,
+              12.3361525
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "HZ-ZONE-02-AMBER",
+        "zone_name": "Mid-Slope Buffer & Hydrological Runoff Corridor",
+        "composite_risk_score": 0.528,
+        "zone_class": "AMBER",
+        "zone_color": "#D97706",
+        "zone_description": "Moderate Hazard Zone - Conditional development / monitored mitigation area",
+        "damage_density": 0.45,
+        "flood_hydro_exposure": 0.58,
+        "slope_landslide": 0.62,
+        "land_cover_hazard": 0.48,
+        "population_density": 0.42,
+        "area_hectares": 41.8,
+        "buildings_inside": 12
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.7988436,
+              12.3397458
+            ],
+            [
+              75.8140162,
+              12.3397458
+            ],
+            [
+              75.8149357,
+              12.3455848
+            ],
+            [
+              75.7997632,
+              12.346034
+            ],
+            [
+              75.7988436,
+              12.3397458
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "HZ-ZONE-03-GREEN",
+        "zone_name": "Upland Ridge & Stable Bedrock Plateau",
+        "composite_risk_score": 0.184,
+        "zone_class": "GREEN",
+        "zone_color": "#059669",
+        "zone_description": "Low Hazard Baseline - Geotechnically stable zone suitable for habitations",
+        "damage_density": 0.08,
+        "flood_hydro_exposure": 0.12,
+        "slope_landslide": 0.22,
+        "land_cover_hazard": 0.25,
+        "population_density": 0.3,
+        "area_hectares": 58.5,
+        "buildings_inside": 15
+      }
+    }
+  ]
+}

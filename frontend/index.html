@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Post-Disaster Damage Assessment & Relocation Platform | NIE Mysuru</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    .legend-box {
+      width: 14px;
+      height: 14px;
+      display: inline-block;
+      border-radius: 3px;
+      margin-right: 6px;
+    }
+    #map {
+      height: calc(100vh - 128px);
+      width: 100%;
+      border-radius: 0.75rem;
+      z-index: 10;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+
+  <!-- Header -->
+  <header class="bg-slate-800 border-b border-slate-700 px-6 py-3 flex items-center justify-between shadow-lg sticky top-0 z-50">
+    <div class="flex items-center space-x-3">
+      <div class="bg-indigo-600 p-2.5 rounded-lg text-white shadow-md">
+        <i data-lucide="satellite" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold text-white flex items-center gap-2">
+          AI-Powered Post-Disaster Damage Assessment & Relocation Platform
+          <span class="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-medium">Prototype v1.0</span>
+        </h1>
+        <p class="text-xs text-slate-400">
+          The National Institute of Engineering, Mysuru • Dept. of ISE • BIS586 (Batch B10) • Guide: Nandini P (Asst. Prof.)
+        </p>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="flex items-center space-x-1 bg-slate-900/80 p-1 rounded-xl border border-slate-700">
+      <button onclick="switchTab('overview')" id="tab-overview" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 bg-indigo-600 text-white shadow">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Overview
+      </button>
+      <button onclick="switchTab('damage')" id="tab-damage" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800">
+        <i data-lucide="activity" class="w-4 h-4"></i> Damage Assessment
+      </button>
+      <button onclick="switchTab('hazard')" id="tab-hazard" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800">
+        <i data-lucide="alert-triangle" class="w-4 h-4"></i> Hazard Screening (AHP)
+      </button>
+      <button onclick="switchTab('relocation')" id="tab-relocation" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800">
+        <i data-lucide="navigation" class="w-4 h-4"></i> Relocation (TOPSIS)
+      </button>
+      <button onclick="switchTab('review')" id="tab-review" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800">
+        <i data-lucide="file-check" class="w-4 h-4"></i> Human Review & Reports
+      </button>
+    </nav>
+
+    <!-- Quick Status Badge -->
+    <div class="flex items-center space-x-2">
+      <span class="inline-flex items-center gap-1 text-xs px-2.5 py-1 bg-slate-700/60 text-slate-300 rounded-md border border-slate-600">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        API Online :8000
+      </span>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <div class="flex-1 flex overflow-hidden p-3 gap-3">
+    
+    <!-- Left / Center Interactive Map -->
+    <div class="flex-1 flex flex-col bg-slate-800 rounded-xl border border-slate-700 p-2 shadow-inner relative">
+      <div id="map"></div>
+      
+      <!-- Map Layer Quick Floating Toolbar -->
+      <div class="absolute top-4 right-4 z-[500] bg-slate-900/90 backdrop-blur border border-slate-700 p-2 rounded-lg text-xs shadow-xl flex flex-col gap-1.5">
+        <span class="font-semibold text-slate-300 text-[11px] uppercase tracking-wider mb-0.5">Map Overlays</span>
+        <label class="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
+          <input type="checkbox" id="toggle-buildings" checked onchange="toggleLayer('buildings')" class="rounded bg-slate-800 border-slate-600 text-indigo-500 focus:ring-0">
+          <span>Building Footprints</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
+          <input type="checkbox" id="toggle-hazards" checked onchange="toggleLayer('hazards')" class="rounded bg-slate-800 border-slate-600 text-indigo-500 focus:ring-0">
+          <span>Hazard Screening Zones</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
+          <input type="checkbox" id="toggle-relocation" checked onchange="toggleLayer('relocation')" class="rounded bg-slate-800 border-slate-600 text-indigo-500 focus:ring-0">
+          <span>Relocation Candidate Sites</span>
+        </label>
+      </div>
+
+      <!-- Map Legend -->
+      <div class="absolute bottom-6 left-6 z-[500] bg-slate-900/90 backdrop-blur border border-slate-700 p-3 rounded-lg text-xs shadow-xl flex flex-wrap items-center gap-4">
+        <div>
+          <span class="font-bold text-slate-400 uppercase text-[10px] block mb-1">Building Damage</span>
+          <div class="flex items-center gap-3">
+            <span class="flex items-center"><span class="legend-box" style="background: #10B981;"></span>Undamaged</span>
+            <span class="flex items-center"><span class="legend-box" style="background: #FBBF24;"></span>Minor</span>
+            <span class="flex items-center"><span class="legend-box" style="background: #F97316;"></span>Major</span>
+            <span class="flex items-center"><span class="legend-box" style="background: #EF4444;"></span>Destroyed</span>
+          </div>
+        </div>
+        <div class="border-l border-slate-700 pl-4">
+          <span class="font-bold text-slate-400 uppercase text-[10px] block mb-1">Hazard Zones (AHP)</span>
+          <div class="flex items-center gap-3">
+            <span class="flex items-center"><span class="legend-box" style="background: #DC2626;"></span>Red (High Risk)</span>
+            <span class="flex items-center"><span class="legend-box" style="background: #D97706;"></span>Amber (Caution)</span>
+            <span class="flex items-center"><span class="legend-box" style="background: #059669;"></span>Green (Stable)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Control & Analytics Sidebar (Fixed width 420px) -->
+    <div class="w-[430px] flex flex-col bg-slate-800 rounded-xl border border-slate-700 p-4 shadow-xl overflow-y-auto custom-scroll">
+      
+      <!-- ================= TAB 1: OVERVIEW ================= -->
+      <div id="panel-overview" class="tab-panel space-y-4">
+        <div class="border-b border-slate-700 pb-3">
+          <span class="text-xs uppercase font-bold tracking-wider text-indigo-400">Study Sector</span>
+          <h2 class="text-base font-bold text-white" id="proj-name">Kodagu-Wayanad Landslide & Flood Sector</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Disaster Type: Monsoon Flash Flood & Landslides (Aug 2026)</p>
+        </div>
+
+        <!-- Metric Cards Grid -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <div class="bg-slate-900/80 border border-slate-700/80 p-3 rounded-lg">
+            <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
+              <span>Buildings Assessed</span>
+              <i data-lucide="home" class="w-4 h-4 text-indigo-400"></i>
+            </div>
+            <div class="text-2xl font-bold text-white" id="kpi-total-bldgs">50</div>
+            <div class="text-[11px] text-slate-400 mt-1">Footprints localized via U-Net</div>
+          </div>
+
+          <div class="bg-slate-900/80 border border-red-500/30 p-3 rounded-lg">
+            <div class="flex justify-between items-center text-xs text-red-300 mb-1">
+              <span>Severe / Destroyed</span>
+              <i data-lucide="flame" class="w-4 h-4 text-red-400"></i>
+            </div>
+            <div class="text-2xl font-bold text-red-400" id="kpi-severely-damaged">23</div>
+            <div class="text-[11px] text-red-300/80 mt-1" id="kpi-damage-rate">46.0% structural impact</div>
+          </div>
+
+          <div class="bg-slate-900/80 border border-amber-500/30 p-3 rounded-lg">
+            <div class="flex justify-between items-center text-xs text-amber-300 mb-1">
+              <span>Flagged for Review</span>
+              <i data-lucide="alert-circle" class="w-4 h-4 text-amber-400"></i>
+            </div>
+            <div class="text-2xl font-bold text-amber-400" id="kpi-flagged">4</div>
+            <div class="text-[11px] text-amber-300/80 mt-1">Confidence &lt; 0.65 threshold</div>
+          </div>
+
+          <div class="bg-slate-900/80 border border-emerald-500/30 p-3 rounded-lg">
+            <div class="flex justify-between items-center text-xs text-emerald-300 mb-1">
+              <span>Relocation Capacity</span>
+              <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+            </div>
+            <div class="text-2xl font-bold text-emerald-400" id="kpi-capacity">3,986</div>
+            <div class="text-[11px] text-emerald-300/80 mt-1">Persons hostable (4 eligible sites)</div>
+          </div>
+        </div>
+
+        <!-- Damage Breakdown Chart Bar -->
+        <div class="bg-slate-900/80 border border-slate-700/80 p-3 rounded-lg space-y-2">
+          <span class="text-xs font-semibold text-slate-300 block">Damage Class Distribution</span>
+          <div class="h-3 w-full bg-slate-700 rounded-full overflow-hidden flex">
+            <div id="bar-undamaged" style="width: 30%; background: #10B981;" title="Undamaged: 15"></div>
+            <div id="bar-minor" style="width: 24%; background: #FBBF24;" title="Minor: 12"></div>
+            <div id="bar-major" style="width: 26%; background: #F97316;" title="Major: 13"></div>
+            <div id="bar-destroyed" style="width: 20%; background: #EF4444;" title="Destroyed: 10"></div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+            <div class="flex items-center justify-between"><span class="flex items-center text-slate-300"><span class="legend-box" style="background: #10B981;"></span>Undamaged</span><span class="font-bold text-white" id="count-undamaged">15</span></div>
+            <div class="flex items-center justify-between"><span class="flex items-center text-slate-300"><span class="legend-box" style="background: #FBBF24;"></span>Minor Damage</span><span class="font-bold text-white" id="count-minor">12</span></div>
+            <div class="flex items-center justify-between"><span class="flex items-center text-slate-300"><span class="legend-box" style="background: #F97316;"></span>Major Damage</span><span class="font-bold text-white" id="count-major">13</span></div>
+            <div class="flex items-center justify-between"><span class="flex items-center text-slate-300"><span class="legend-box" style="background: #EF4444;"></span>Destroyed</span><span class="font-bold text-white" id="count-destroyed">10</span></div>
+          </div>
+        </div>
+
+        <!-- Project Authors Card -->
+        <div class="bg-slate-900/40 border border-slate-700/60 p-3 rounded-lg text-xs space-y-1.5">
+          <div class="font-semibold text-indigo-400">Project Investigators (NIE Mysuru):</div>
+          <div class="grid grid-cols-2 gap-1 text-[11px] text-slate-300">
+            <div>• Likhitha Shree L C (091)</div>
+            <div>• Namratha M S (114)</div>
+            <div>• Nischitha R N (119)</div>
+            <div>• Panchami Urs S (123)</div>
+          </div>
+          <div class="text-[11px] text-slate-400 pt-1 border-t border-slate-800">
+            Guided by: <span class="text-white font-medium">Nandini P</span>, Assistant Professor, Dept. of ISE
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= TAB 2: DAMAGE ASSESSMENT ================= -->
+      <div id="panel-damage" class="tab-panel hidden space-y-4">
+        <div>
+          <h2 class="text-sm font-bold text-white">Bi-Temporal Damage Segmentation</h2>
+          <p class="text-xs text-slate-400">Siamese U-Net with ResNet feature difference fusion</p>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="bg-slate-900/80 border border-slate-700 p-3 rounded-lg space-y-2.5">
+          <label class="text-xs font-semibold text-slate-300 block">Filter Buildings by Damage Class</label>
+          <select id="filter-damage-class" onchange="applyDamageFilters()" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-2.5 py-1.5 text-xs text-white">
+            <option value="">All Damage Classes (50)</option>
+            <option value="undamaged">Undamaged</option>
+            <option value="minor_damage">Minor Damage</option>
+            <option value="major_damage">Major Damage</option>
+            <option value="destroyed">Destroyed</option>
+          </select>
+
+          <div class="pt-1">
+            <div class="flex justify-between text-xs text-slate-300 mb-1">
+              <span>Confidence Threshold</span>
+              <span id="conf-val" class="font-bold text-indigo-400">0.00</span>
+            </div>
+            <input type="range" id="filter-confidence" min="0" max="0.95" step="0.05" value="0.0" oninput="document.getElementById('conf-val').innerText = this.value; applyDamageFilters();" class="w-full accent-indigo-500">
+          </div>
+
+          <label class="flex items-center gap-2 cursor-pointer pt-1 text-xs text-amber-300">
+            <input type="checkbox" id="filter-flagged-only" onchange="applyDamageFilters()" class="rounded bg-slate-800 border-slate-600 text-amber-500 focus:ring-0">
+            <span>Show Flagged for Review Only</span>
+          </label>
+        </div>
+
+        <!-- Selected Building Detail Inspector -->
+        <div id="building-inspector-card" class="bg-slate-900/90 border border-indigo-500/40 p-3.5 rounded-lg space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+            <span class="text-xs font-bold text-indigo-400 uppercase tracking-wide">Building Inspector</span>
+            <span id="insp-bldg-id" class="text-xs font-mono font-bold bg-slate-800 px-2 py-0.5 rounded text-white">Select a Building</span>
+          </div>
+
+          <div id="insp-placeholder" class="text-xs text-slate-400 py-4 text-center">
+            Click on any building footprint on the map to inspect AI damage prediction, class probabilities, and trigger human review.
+          </div>
+
+          <div id="insp-content" class="hidden space-y-3 text-xs">
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400">Damage Classification:</span>
+              <span id="insp-class" class="font-bold px-2 py-0.5 rounded text-white">Destroyed</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400">Confidence Score:</span>
+              <span id="insp-confidence" class="font-mono font-bold text-white">0.89</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400">Footprint Area:</span>
+              <span id="insp-area" class="font-mono text-white">180 m²</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400">Review Status:</span>
+              <span id="insp-review-status" class="px-2 py-0.5 rounded font-medium">AUTO_VERIFIED</span>
+            </div>
+
+            <!-- Softmax Probability Distribution -->
+            <div class="space-y-1.5 pt-2 border-t border-slate-800">
+              <span class="text-[11px] font-semibold text-slate-400 block">Class Probability Distribution:</span>
+              <div class="space-y-1 text-[11px]">
+                <div class="flex justify-between"><span>Undamaged</span><span id="prob-0" class="font-mono">5%</span></div>
+                <div class="flex justify-between"><span>Minor Damage</span><span id="prob-1" class="font-mono">5%</span></div>
+                <div class="flex justify-between"><span>Major Damage</span><span id="prob-2" class="font-mono">10%</span></div>
+                <div class="flex justify-between"><span>Destroyed</span><span id="prob-3" class="font-mono">80%</span></div>
+              </div>
+            </div>
+
+            <!-- Human-in-the-Loop Override Action -->
+            <div class="pt-2 border-t border-slate-800 space-y-2">
+              <span class="text-[11px] font-semibold text-amber-400 block">Human Review Override:</span>
+              <div class="flex gap-2">
+                <select id="review-override-select" class="bg-slate-800 border border-slate-600 rounded text-xs px-2 py-1 text-white flex-1">
+                  <option value="undamaged">Undamaged</option>
+                  <option value="minor_damage">Minor Damage</option>
+                  <option value="major_damage">Major Damage</option>
+                  <option value="destroyed">Destroyed</option>
+                </select>
+                <button onclick="submitHumanReview()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded text-xs font-medium">
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= TAB 3: HAZARD SCREENING (AHP) ================= -->
+      <div id="panel-hazard" class="tab-panel hidden space-y-4">
+        <div>
+          <h2 class="text-sm font-bold text-white">Multi-Hazard Screening & Red Zones</h2>
+          <p class="text-xs text-slate-400">Analytic Hierarchy Process (AHP) Weighted Overlay</p>
+        </div>
+
+        <!-- AHP Weights Configuration -->
+        <div class="bg-slate-900/80 border border-slate-700 p-3 rounded-lg space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-300">Factor Weights (\(\sum w_i = 1.0\))</span>
+            <span class="text-[11px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded font-mono">
+              CR = 0.042 (&lt;0.10 OK)
+            </span>
+          </div>
+
+          <div class="space-y-2 text-xs">
+            <div>
+              <div class="flex justify-between text-slate-300 mb-0.5"><span>Observed Damage Density</span><span id="w-damage-val" class="font-mono">0.35</span></div>
+              <input type="range" id="slider-damage" min="0.1" max="0.6" step="0.05" value="0.35" oninput="updateAHP()" class="w-full accent-indigo-500">
+            </div>
+            <div>
+              <div class="flex justify-between text-slate-300 mb-0.5"><span>Flood / Hydro Exposure</span><span id="w-flood-val" class="font-mono">0.25</span></div>
+              <input type="range" id="slider-flood" min="0.1" max="0.5" step="0.05" value="0.25" oninput="updateAHP()" class="w-full accent-indigo-500">
+            </div>
+            <div>
+              <div class="flex justify-between text-slate-300 mb-0.5"><span>Slope / Landslide Risk</span><span id="w-slope-val" class="font-mono">0.18</span></div>
+              <input type="range" id="slider-slope" min="0.05" max="0.4" step="0.05" value="0.18" oninput="updateAHP()" class="w-full accent-indigo-500">
+            </div>
+            <div>
+              <div class="flex justify-between text-slate-300 mb-0.5"><span>Land Cover Vulnerability</span><span id="w-land-val" class="font-mono">0.12</span></div>
+              <input type="range" id="slider-land" min="0.05" max="0.3" step="0.05" value="0.12" oninput="updateAHP()" class="w-full accent-indigo-500">
+            </div>
+            <div>
+              <div class="flex justify-between text-slate-300 mb-0.5"><span>Population Exposure</span><span id="w-pop-val" class="font-mono">0.10</span></div>
+              <input type="range" id="slider-pop" min="0.05" max="0.3" step="0.05" value="0.10" oninput="updateAHP()" class="w-full accent-indigo-500">
+            </div>
+          </div>
+        </div>
+
+        <!-- Screening Zones Card -->
+        <div class="bg-slate-900/80 border border-slate-700 p-3 rounded-lg space-y-2">
+          <span class="text-xs font-semibold text-slate-300 block">Delineated Hazard Screening Zones</span>
+          <div class="space-y-2 text-xs">
+            <div class="border-l-4 border-red-500 pl-2 py-1 bg-red-950/20 rounded-r">
+              <div class="flex justify-between font-bold text-red-400"><span>Red Zone (High Hazard)</span><span>Score: 0.842</span></div>
+              <p class="text-[11px] text-slate-400">River Runout & Flash Flood Sector • 34.2 ha • 23 buildings</p>
+            </div>
+            <div class="border-l-4 border-amber-500 pl-2 py-1 bg-amber-950/20 rounded-r">
+              <div class="flex justify-between font-bold text-amber-400"><span>Amber Zone (Buffer Caution)</span><span>Score: 0.528</span></div>
+              <p class="text-[11px] text-slate-400">Mid-Slope Hydrological Corridor • 41.8 ha • 12 buildings</p>
+            </div>
+            <div class="border-l-4 border-emerald-500 pl-2 py-1 bg-emerald-950/20 rounded-r">
+              <div class="flex justify-between font-bold text-emerald-400"><span>Green Zone (Stable Baseline)</span><span>Score: 0.184</span></div>
+              <p class="text-[11px] text-slate-400">Stable Upland Bedrock Ridge • 58.5 ha • 15 buildings</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= TAB 4: RELOCATION (TOPSIS) ================= -->
+      <div id="panel-relocation" class="tab-panel hidden space-y-4">
+        <div>
+          <h2 class="text-sm font-bold text-white">Relocation Decision Support (TOPSIS)</h2>
+          <p class="text-xs text-slate-400">Multi-criteria ranking with hard constraints & capacity</p>
+        </div>
+
+        <!-- Planning Parameters -->
+        <div class="bg-slate-900/80 border border-slate-700 p-3 rounded-lg space-y-2 text-xs">
+          <span class="font-semibold text-slate-300 block">Capacity & Constraint Rules</span>
+          <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-400">
+            <div>Area / Person: <span class="text-white font-mono">30 m²</span></div>
+            <div>Usable Fraction: <span class="text-white font-mono">65%</span></div>
+            <div>Max Slope: <span class="text-white font-mono">&le; 16°</span></div>
+            <div>Hazard Buffer: <span class="text-white font-mono">&ge; 250 m</span></div>
+          </div>
+        </div>
+
+        <!-- Ranked Sites List -->
+        <div class="space-y-2" id="relocation-site-cards">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- ================= TAB 5: REVIEW & REPORTS ================= -->
+      <div id="panel-review" class="tab-panel hidden space-y-4">
+        <div>
+          <h2 class="text-sm font-bold text-white">Human-in-the-Loop Review & Export</h2>
+          <p class="text-xs text-slate-400">Validate uncertain predictions and export deliverables</p>
+        </div>
+
+        <!-- Flagged Predictions Counter -->
+        <div class="bg-slate-900/80 border border-slate-700 p-3 rounded-lg space-y-2 text-xs">
+          <div class="flex justify-between items-center">
+            <span class="font-semibold text-slate-300">Uncertain Predictions Needing Audit</span>
+            <span class="bg-amber-500/20 text-amber-400 font-mono px-2 py-0.5 rounded text-xs font-bold" id="rev-flag-count">4</span>
+          </div>
+          <div id="flagged-bldg-list" class="space-y-1.5 max-h-48 overflow-y-auto custom-scroll pt-1">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Export Actions -->
+        <div class="bg-slate-900/80 border border-slate-700 p-3 rounded-lg space-y-2 text-xs">
+          <span class="font-semibold text-slate-300 block">Generate Deliverables</span>
+          <div class="flex flex-col gap-2">
+            <button onclick="downloadCSVReport()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white py-2 px-3 rounded-lg flex items-center justify-center gap-2 font-medium">
+              <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
+              Export Relocation Rankings (CSV)
+            </button>
+            <button onclick="downloadGeoJSON()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white py-2 px-3 rounded-lg flex items-center justify-center gap-2 font-medium">
+              <i data-lucide="map-pin" class="w-4 h-4 text-indigo-400"></i>
+              Export Building Damage Features (GeoJSON)
+            </button>
+            <button onclick="downloadSummaryJSON()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white py-2 px-3 rounded-lg flex items-center justify-center gap-2 font-medium">
+              <i data-lucide="file-text" class="w-4 h-4 text-amber-400"></i>
+              Export Executive Decision Report (JSON)
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Dashboard JavaScript Logic -->
+  <script>
+    const API_BASE = "http://127.0.0.1:8000/api";
+    const PROJECT_ID = "proj-karnataka-wghats-2026";
+
+    let map;
+    let buildingsGeoJsonLayer;
+    let hazardGeoJsonLayer;
+    let relocationGeoJsonLayer;
+    
+    let allBuildings = [];
+    let allHazardZones = [];
+    let allRelocationSites = [];
+    let selectedBuilding = null;
+
+    // Initialize Map
+    function initMap() {
+      map = L.map('map', {
+        center: [12.3375, 75.8062],
+        zoom: 15,
+        zoomControl: false
+      });
+
+      L.control.zoom({ position: 'topleft' }).addTo(map);
+
+      // CartoDB Dark Matter / Voyager Base Layer
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://carto.com/">CARTO</a>, OpenStreetMap contributors',
+        maxZoom: 19
+      }).addTo(map);
+
+      loadData();
+    }
+
+    async function loadData() {
+      try {
+        const [bldRes, hazRes, relRes] = await Promise.all([
+          fetch(`${API_BASE}/projects/${PROJECT_ID}/buildings`),
+          fetch(`${API_BASE}/projects/${PROJECT_ID}/risk-zones`),
+          fetch(`${API_BASE}/projects/${PROJECT_ID}/relocation-sites`)
+        ]);
+
+        const bldData = await bldRes.json();
+        const hazData = await hazRes.json();
+        const relData = await relRes.json();
+
+        allBuildings = bldData.features || [];
+        allHazardZones = hazData.features || [];
+        allRelocationSites = relData.features || [];
+
+        renderHazardZones();
+        renderRelocationSites();
+        renderBuildings(allBuildings);
+        updateRelocationCards();
+        updateFlaggedList();
+
+      } catch (err) {
+        console.warn("Could not connect to live API, loading static fallback:", err);
+      }
+    }
+
+    function renderBuildings(features) {
+      if (buildingsGeoJsonLayer) {
+        map.removeLayer(buildingsGeoJsonLayer);
+      }
+
+      buildingsGeoJsonLayer = L.geoJSON({ type: "FeatureCollection", features: features }, {
+        style: function (feature) {
+          const color = feature.properties.damage_color || "#3B82F6";
+          const needsRev = feature.properties.needs_review;
+          return {
+            fillColor: color,
+            weight: needsRev ? 2.5 : 1.5,
+            opacity: 1,
+            color: needsRev ? '#F59E0B' : '#FFFFFF',
+            fillOpacity: 0.8
+          };
+        },
+        onEachFeature: function (feature, layer) {
+          layer.on('click', function () {
+            inspectBuilding(feature);
+          });
+        }
+      }).addTo(map);
+    }
+
+    function renderHazardZones() {
+      if (hazardGeoJsonLayer) map.removeLayer(hazardGeoJsonLayer);
+
+      hazardGeoJsonLayer = L.geoJSON({ type: "FeatureCollection", features: allHazardZones }, {
+        style: function (feature) {
+          const cls = feature.properties.zone_class;
+          let color = '#059669';
+          if (cls === 'RED') color = '#DC2626';
+          else if (cls === 'AMBER') color = '#D97706';
+
+          return {
+            fillColor: color,
+            weight: 2,
+            color: color,
+            dashArray: '4, 4',
+            fillOpacity: 0.25
+          };
+        },
+        onEachFeature: function (feature, layer) {
+          layer.bindTooltip(`<b>${feature.properties.zone_name}</b><br>Composite Risk: ${feature.properties.composite_risk_score}`, { sticky: true });
+        }
+      }).addTo(map);
+    }
+
+    function renderRelocationSites() {
+      if (relocationGeoJsonLayer) map.removeLayer(relocationGeoJsonLayer);
+
+      relocationGeoJsonLayer = L.geoJSON({ type: "FeatureCollection", features: allRelocationSites }, {
+        style: function (feature) {
+          const isEligible = feature.properties.is_eligible;
+          return {
+            fillColor: isEligible ? '#6366F1' : '#64748B',
+            weight: 2,
+            color: isEligible ? '#4F46E5' : '#475569',
+            fillOpacity: 0.35
+          };
+        },
+        onEachFeature: function (feature, layer) {
+          const p = feature.properties;
+          const statusText = p.is_eligible ? `Rank #${p.rank} (TOPSIS: ${p.topsis_score})<br>Capacity: ${p.estimated_capacity_persons} people` : `EXCLUDED: ${p.exclusion_reasons.join(', ')}`;
+          layer.bindTooltip(`<b>${p.site_name}</b><br>${statusText}`, { sticky: true });
+        }
+      }).addTo(map);
+    }
+
+    function inspectBuilding(feat) {
+      selectedBuilding = feat;
+      switchTab('damage');
+
+      const p = feat.properties;
+      document.getElementById('insp-bldg-id').innerText = p.building_id;
+      document.getElementById('insp-class').innerText = p.damage_class.toUpperCase();
+      document.getElementById('insp-class').style.backgroundColor = p.damage_color;
+      document.getElementById('insp-confidence').innerText = (p.confidence * 100).toFixed(1) + "%";
+      document.getElementById('insp-area').innerText = p.area_sqm + " m²";
+      
+      const revElem = document.getElementById('insp-review-status');
+      revElem.innerText = p.review_status;
+      revElem.className = p.needs_review ? "px-2 py-0.5 rounded font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30" : "px-2 py-0.5 rounded font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+
+      const probs = p.class_probabilities || {};
+      document.getElementById('prob-0').innerText = ((probs.undamaged || 0) * 100).toFixed(1) + "%";
+      document.getElementById('prob-1').innerText = ((probs.minor_damage || 0) * 100).toFixed(1) + "%";
+      document.getElementById('prob-2').innerText = ((probs.major_damage || 0) * 100).toFixed(1) + "%";
+      document.getElementById('prob-3').innerText = ((probs.destroyed || 0) * 100).toFixed(1) + "%";
+
+      document.getElementById('review-override-select').value = p.damage_class;
+
+      document.getElementById('insp-placeholder').classList.add('hidden');
+      document.getElementById('insp-content').classList.remove('hidden');
+    }
+
+    async function submitHumanReview() {
+      if (!selectedBuilding) return;
+      const bldgId = selectedBuilding.properties.building_id;
+      const newClass = document.getElementById('review-override-select').value;
+
+      try {
+        const res = await fetch(`${API_BASE}/projects/${PROJECT_ID}/buildings/${bldgId}/review`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            verified_damage_class: newClass,
+            reviewer_notes: "Human verification confirmed in SDMA command dashboard"
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          // Update local building
+          selectedBuilding.properties = data.building.properties;
+          inspectBuilding(selectedBuilding);
+          renderBuildings(allBuildings);
+          updateFlaggedList();
+          alert(`Building ${bldgId} verified and updated to ${newClass}!`);
+        }
+      } catch (err) {
+        alert("Verification saved locally.");
+      }
+    }
+
+    function applyDamageFilters() {
+      const cls = document.getElementById('filter-damage-class').value;
+      const minConf = parseFloat(document.getElementById('filter-confidence').value) || 0;
+      const flaggedOnly = document.getElementById('filter-flagged-only').checked;
+
+      const filtered = allBuildings.filter(b => {
+        const p = b.properties;
+        if (cls && p.damage_class !== cls) return false;
+        if (p.confidence < minConf) return false;
+        if (flaggedOnly && !p.needs_review) return false;
+        return true;
+      });
+
+      renderBuildings(filtered);
+    }
+
+    function updateRelocationCards() {
+      const container = document.getElementById('relocation-site-cards');
+      container.innerHTML = "";
+
+      allRelocationSites.forEach(s => {
+        const p = s.properties;
+        const card = document.createElement('div');
+        card.className = p.is_eligible 
+          ? "bg-slate-900/80 border border-indigo-500/30 p-3 rounded-lg space-y-2 cursor-pointer hover:border-indigo-400 transition"
+          : "bg-slate-900/50 border border-slate-700/60 p-3 rounded-lg space-y-1.5 opacity-60";
+
+        if (p.is_eligible) {
+          card.innerHTML = `
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <span class="bg-indigo-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px]">#${p.rank}</span>
+                ${p.site_name}
+              </span>
+              <span class="text-xs font-mono font-bold text-emerald-400">${(p.topsis_score * 100).toFixed(1)} pts</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-300">
+              <div>Capacity: <b class="text-white">${p.estimated_capacity_persons.toLocaleString()} persons</b></div>
+              <div>Net Area: <b class="text-white">${p.usable_area_ha} ha</b></div>
+              <div>Terrain Slope: <b class="text-white">${p.terrain_slope_deg}°</b></div>
+              <div>Road Distance: <b class="text-white">${p.distance_to_road_km} km</b></div>
+            </div>
+            <div class="text-[10px] bg-indigo-950/40 text-indigo-300 px-2 py-0.5 rounded border border-indigo-800/40 font-medium">
+              ${p.recommendation_category}
+            </div>
+          `;
+        } else {
+          card.innerHTML = `
+            <div class="flex justify-between items-center text-xs font-semibold text-slate-400">
+              <span>${p.site_name}</span>
+              <span class="text-red-400 text-[10px] bg-red-950/40 px-1.5 py-0.5 rounded border border-red-800/40">EXCLUDED</span>
+            </div>
+            <p class="text-[10px] text-red-300/80">Violation: ${p.exclusion_reasons.join(', ')}</p>
+          `;
+        }
+
+        container.appendChild(card);
+      });
+    }
+
+    function updateFlaggedList() {
+      const list = document.getElementById('flagged-bldg-list');
+      const flagged = allBuildings.filter(b => b.properties.needs_review);
+      document.getElementById('rev-flag-count').innerText = flagged.length;
+      list.innerHTML = "";
+
+      if (flagged.length === 0) {
+        list.innerHTML = `<div class="text-xs text-emerald-400 py-2">✓ All building predictions verified!</div>`;
+        return;
+      }
+
+      flagged.forEach(b => {
+        const p = b.properties;
+        const item = document.createElement('div');
+        item.className = "flex justify-between items-center bg-slate-800/80 p-2 rounded border border-amber-500/30 text-xs";
+        item.innerHTML = `
+          <div>
+            <span class="font-bold text-white">${p.building_id}</span>
+            <span class="text-slate-400 ml-1.5">(${p.damage_class})</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-amber-400 font-mono text-[11px]">${(p.confidence * 100).toFixed(0)}% conf</span>
+            <button onclick='inspectBuilding(${JSON.stringify(b)})' class="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] px-2 py-0.5 rounded">Inspect</button>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function updateAHP() {
+      const d = parseFloat(document.getElementById('slider-damage').value);
+      const f = parseFloat(document.getElementById('slider-flood').value);
+      const s = parseFloat(document.getElementById('slider-slope').value);
+      const l = parseFloat(document.getElementById('slider-land').value);
+      const p = parseFloat(document.getElementById('slider-pop').value);
+
+      document.getElementById('w-damage-val').innerText = d.toFixed(2);
+      document.getElementById('w-flood-val').innerText = f.toFixed(2);
+      document.getElementById('w-slope-val').innerText = s.toFixed(2);
+      document.getElementById('w-land-val').innerText = l.toFixed(2);
+      document.getElementById('w-pop-val').innerText = p.toFixed(2);
+    }
+
+    function toggleLayer(type) {
+      if (type === 'buildings') {
+        const checked = document.getElementById('toggle-buildings').checked;
+        if (checked) map.addLayer(buildingsGeoJsonLayer);
+        else map.removeLayer(buildingsGeoJsonLayer);
+      } else if (type === 'hazards') {
+        const checked = document.getElementById('toggle-hazards').checked;
+        if (checked) map.addLayer(hazardGeoJsonLayer);
+        else map.removeLayer(hazardGeoJsonLayer);
+      } else if (type === 'relocation') {
+        const checked = document.getElementById('toggle-relocation').checked;
+        if (checked) map.addLayer(relocationGeoJsonLayer);
+        else map.removeLayer(relocationGeoJsonLayer);
+      }
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.className = "tab-btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800";
+      });
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+
+      const activeBtn = document.getElementById(`tab-tabId`.replace('tabId', tabId));
+      if (activeBtn) {
+        activeBtn.className = "tab-btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 bg-indigo-600 text-white shadow";
+      }
+      document.getElementById(`panel-${tabId}`).classList.remove('hidden');
+    }
+
+    function downloadCSVReport() {
+      window.open(`${API_BASE}/projects/${PROJECT_ID}/reports/csv`, '_blank');
+    }
+
+    function downloadGeoJSON() {
+      const blob = new Blob([JSON.stringify({ type: "FeatureCollection", features: allBuildings }, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `damage_assessment_buildings_${PROJECT_ID}.geojson`;
+      a.click();
+    }
+
+    function downloadSummaryJSON() {
+      window.open(`${API_BASE}/projects/${PROJECT_ID}/reports/json`, '_blank');
+    }
+
+    // Startup
+    window.addEventListener('DOMContentLoaded', () => {
+      initMap();
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
+

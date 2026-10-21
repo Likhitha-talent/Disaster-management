@@ -1,0 +1,2455 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8085357,
+              12.339876
+            ],
+            [
+              75.8086644,
+              12.339876
+            ],
+            [
+              75.8086644,
+              12.3399928
+            ],
+            [
+              75.8085357,
+              12.3399928
+            ],
+            [
+              75.8085357,
+              12.339876
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0001",
+        "damage_class": "undamaged",
+        "damage_level": 0,
+        "damage_color": "#10B981",
+        "confidence": 0.849,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 182.0,
+        "elevation_m": 853.5,
+        "slope_deg": 6.5,
+        "class_probabilities": {
+          "undamaged": 0.849,
+          "minor_damage": 0.05,
+          "major_damage": 0.05,
+          "destroyed": 0.05
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8090874,
+              12.3405004
+            ],
+            [
+              75.8092345,
+              12.3405004
+            ],
+            [
+              75.8092345,
+              12.3406441
+            ],
+            [
+              75.8090874,
+              12.3406441
+            ],
+            [
+              75.8090874,
+              12.3405004
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0002",
+        "damage_class": "undamaged",
+        "damage_level": 0,
+        "damage_color": "#10B981",
+        "confidence": 0.859,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 256.0,
+        "elevation_m": 857.1,
+        "slope_deg": 4.5,
+        "class_probabilities": {
+          "undamaged": 0.859,
+          "minor_damage": 0.047,
+          "major_damage": 0.047,
+          "destroyed": 0.047
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8096391,
+              12.3411247
+            ],
+            [
+              75.8098046,
+              12.3411247
+            ],
+            [
+              75.8098046,
+              12.3412954
+            ],
+            [
+              75.8096391,
+              12.3412954
+            ],
+            [
+              75.8096391,
+              12.3411247
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0003",
+        "damage_class": "undamaged",
+        "damage_level": 0,
+        "damage_color": "#10B981",
+        "confidence": 0.868,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 342.0,
+        "elevation_m": 860.6,
+        "slope_deg": 9.5,
+        "class_probabilities": {
+          "undamaged": 0.868,
+          "minor_damage": 0.044,
+          "major_damage": 0.044,
+          "destroyed": 0.044
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8101908,
+              12.341749
+            ],
+            [
+              75.8103747,
+              12.341749
+            ],
+            [
+              75.8103747,
+              12.3419466
+            ],
+            [
+              75.8101908,
+              12.3419466
+            ],
+            [
+              75.8101908,
+              12.341749
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0004",
+        "damage_class": "undamaged",
+        "damage_level": 0,
+        "damage_color": "#10B981",
+        "confidence": 0.877,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 440.0,
+        "elevation_m": 864.2,
+        "slope_deg": 7.5,
+        "class_probabilities": {
+          "undamaged": 0.877,
+          "minor_damage": 0.041,
+          "major_damage": 0.041,
+          "destroyed": 0.041
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8107426,
+              12.3424407
+            ],
+            [
+              75.8109449,
+              12.3424407
+            ],
+            [
+              75.8109449,
+              12.3425305
+            ],
+            [
+              75.8107426,
+              12.3425305
+            ],
+            [
+              75.8107426,
+              12.3424407
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0005",
+        "damage_class": "undamaged",
+        "damage_level": 0,
+        "damage_color": "#10B981",
+        "confidence": 0.887,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 220.0,
+        "elevation_m": 867.8,
+        "slope_deg": 5.5,
+        "class_probabilities": {
+          "undamaged": 0.887,
+          "minor_damage": 0.038,
+          "major_damage": 0.038,
+          "destroyed": 0.038
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8112943,
+              12.343065
+            ],
+            [
+              75.811515,
+              12.343065
+            ],
+            [
+              75.811515,
+              12.3431818
+            ],
+            [
+              75.8112943,
+              12.3431818
+            ],
+            [
+              75.8112943,
+              12.343065
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0006",
+        "damage_class": "undamaged",
+        "damage_level": 0,
+        "damage_color": "#10B981",
+        "confidence": 0.896,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 312.0,
+        "elevation_m": 871.3,
+        "slope_deg": 10.5,
+        "class_probabilities": {
+          "undamaged": 0.896,
+          "minor_damage": 0.035,
+          "major_damage": 0.035,
+          "destroyed": 0.035
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8119104,
+              12.3436894
+            ],
+            [
+              75.8120207,
+              12.3436894
+            ],
+            [
+              75.8120207,
+              12.3438331
+            ],
+            [
+              75.8119104,
+              12.3438331
+            ],
+            [
+              75.8119104,
+              12.3436894
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0007",
+        "damage_class": "undamaged",
+        "damage_level": 0,
+        "damage_color": "#10B981",
+        "confidence": 0.59,
+        "review_status": "FLAGGED_FOR_REVIEW",
+        "needs_review": true,
+        "area_sqm": 192.0,
+        "elevation_m": 874.9,
+        "slope_deg": 8.5,
+        "class_probabilities": {
+          "undamaged": 0.59,
+          "minor_damage": 0.137,
+          "major_damage": 0.137,
+          "destroyed": 0.137
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8124621,
+              12.3443137
+            ],
+            [
+              75.8125909,
+              12.3443137
+            ],
+            [
+              75.8125909,
+              12.3444844
+            ],
+            [
+              75.8124621,
+              12.3444844
+            ],
+            [
+              75.8124621,
+              12.3443137
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0008",
+        "damage_class": "undamaged",
+        "damage_level": 0,
+        "damage_color": "#10B981",
+        "confidence": 0.915,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 266.0,
+        "elevation_m": 878.4,
+        "slope_deg": 6.5,
+        "class_probabilities": {
+          "undamaged": 0.915,
+          "minor_damage": 0.028,
+          "major_damage": 0.028,
+          "destroyed": 0.028
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8130138,
+              12.344938
+            ],
+            [
+              75.813161,
+              12.344938
+            ],
+            [
+              75.813161,
+              12.3451356
+            ],
+            [
+              75.8130138,
+              12.3451356
+            ],
+            [
+              75.8130138,
+              12.344938
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0009",
+        "damage_class": "undamaged",
+        "damage_level": 0,
+        "damage_color": "#10B981",
+        "confidence": 0.924,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 352.0,
+        "elevation_m": 882.0,
+        "slope_deg": 4.5,
+        "class_probabilities": {
+          "undamaged": 0.924,
+          "minor_damage": 0.025,
+          "major_damage": 0.025,
+          "destroyed": 0.025
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8135656,
+              12.3393415
+            ],
+            [
+              75.8137311,
+              12.3393415
+            ],
+            [
+              75.8137311,
+              12.3394314
+            ],
+            [
+              75.8135656,
+              12.3394314
+            ],
+            [
+              75.8135656,
+              12.3393415
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0010",
+        "damage_class": "undamaged",
+        "damage_level": 0,
+        "damage_color": "#10B981",
+        "confidence": 0.933,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 180.0,
+        "elevation_m": 850.5,
+        "slope_deg": 9.5,
+        "class_probabilities": {
+          "undamaged": 0.933,
+          "minor_damage": 0.022,
+          "major_damage": 0.022,
+          "destroyed": 0.022
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8141173,
+              12.3399659
+            ],
+            [
+              75.8143012,
+              12.3399659
+            ],
+            [
+              75.8143012,
+              12.3400826
+            ],
+            [
+              75.8141173,
+              12.3400826
+            ],
+            [
+              75.8141173,
+              12.3399659
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0011",
+        "damage_class": "undamaged",
+        "damage_level": 0,
+        "damage_color": "#10B981",
+        "confidence": 0.943,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 260.0,
+        "elevation_m": 854.0,
+        "slope_deg": 7.5,
+        "class_probabilities": {
+          "undamaged": 0.943,
+          "minor_damage": 0.019,
+          "major_damage": 0.019,
+          "destroyed": 0.019
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.814669,
+              12.3405902
+            ],
+            [
+              75.8148713,
+              12.3405902
+            ],
+            [
+              75.8148713,
+              12.3407339
+            ],
+            [
+              75.814669,
+              12.3407339
+            ],
+            [
+              75.814669,
+              12.3405902
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0012",
+        "damage_class": "undamaged",
+        "damage_level": 0,
+        "damage_color": "#10B981",
+        "confidence": 0.952,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 352.0,
+        "elevation_m": 857.6,
+        "slope_deg": 5.5,
+        "class_probabilities": {
+          "undamaged": 0.952,
+          "minor_damage": 0.016,
+          "major_damage": 0.016,
+          "destroyed": 0.016
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8152208,
+              12.3412145
+            ],
+            [
+              75.8154414,
+              12.3412145
+            ],
+            [
+              75.8154414,
+              12.3413852
+            ],
+            [
+              75.8152208,
+              12.3413852
+            ],
+            [
+              75.8152208,
+              12.3412145
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0013",
+        "damage_class": "undamaged",
+        "damage_level": 0,
+        "damage_color": "#10B981",
+        "confidence": 0.961,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 456.0,
+        "elevation_m": 861.1,
+        "slope_deg": 10.5,
+        "class_probabilities": {
+          "undamaged": 0.961,
+          "minor_damage": 0.013,
+          "major_damage": 0.013,
+          "destroyed": 0.013
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8084805,
+              12.3418388
+            ],
+            [
+              75.8085908,
+              12.3418388
+            ],
+            [
+              75.8085908,
+              12.3420365
+            ],
+            [
+              75.8084805,
+              12.3420365
+            ],
+            [
+              75.8084805,
+              12.3418388
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0014",
+        "damage_class": "undamaged",
+        "damage_level": 0,
+        "damage_color": "#10B981",
+        "confidence": 0.971,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 264.0,
+        "elevation_m": 864.7,
+        "slope_deg": 6.5,
+        "class_probabilities": {
+          "undamaged": 0.971,
+          "minor_damage": 0.01,
+          "major_damage": 0.01,
+          "destroyed": 0.01
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8090322,
+              12.3425305
+            ],
+            [
+              75.8091609,
+              12.3425305
+            ],
+            [
+              75.8091609,
+              12.3426204
+            ],
+            [
+              75.8090322,
+              12.3426204
+            ],
+            [
+              75.8090322,
+              12.3425305
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0015",
+        "damage_class": "undamaged",
+        "damage_level": 0,
+        "damage_color": "#10B981",
+        "confidence": 0.84,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 140.0,
+        "elevation_m": 868.2,
+        "slope_deg": 4.5,
+        "class_probabilities": {
+          "undamaged": 0.84,
+          "minor_damage": 0.053,
+          "major_damage": 0.053,
+          "destroyed": 0.053
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8075241,
+              12.3369386
+            ],
+            [
+              75.8076713,
+              12.3369386
+            ],
+            [
+              75.8076713,
+              12.3370553
+            ],
+            [
+              75.8075241,
+              12.3370553
+            ],
+            [
+              75.8075241,
+              12.3369386
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0016",
+        "damage_class": "minor_damage",
+        "damage_level": 1,
+        "damage_color": "#FBBF24",
+        "confidence": 0.733,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 208.0,
+        "elevation_m": 837.2,
+        "slope_deg": 9.5,
+        "class_probabilities": {
+          "undamaged": 0.089,
+          "minor_damage": 0.733,
+          "major_damage": 0.089,
+          "destroyed": 0.089
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8079471,
+              12.3374551
+            ],
+            [
+              75.8081127,
+              12.3374551
+            ],
+            [
+              75.8081127,
+              12.3375988
+            ],
+            [
+              75.8079471,
+              12.3375988
+            ],
+            [
+              75.8079471,
+              12.3374551
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0017",
+        "damage_class": "minor_damage",
+        "damage_level": 1,
+        "damage_color": "#FBBF24",
+        "confidence": 0.747,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 288.0,
+        "elevation_m": 840.1,
+        "slope_deg": 7.5,
+        "class_probabilities": {
+          "undamaged": 0.084,
+          "minor_damage": 0.747,
+          "major_damage": 0.084,
+          "destroyed": 0.084
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8083701,
+              12.3379716
+            ],
+            [
+              75.808554,
+              12.3379716
+            ],
+            [
+              75.808554,
+              12.3381423
+            ],
+            [
+              75.8083701,
+              12.3381423
+            ],
+            [
+              75.8083701,
+              12.3379716
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0018",
+        "damage_class": "minor_damage",
+        "damage_level": 1,
+        "damage_color": "#FBBF24",
+        "confidence": 0.76,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 380.0,
+        "elevation_m": 843.1,
+        "slope_deg": 5.5,
+        "class_probabilities": {
+          "undamaged": 0.08,
+          "minor_damage": 0.76,
+          "major_damage": 0.08,
+          "destroyed": 0.08
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8087931,
+              12.3384881
+            ],
+            [
+              75.8089954,
+              12.3384881
+            ],
+            [
+              75.8089954,
+              12.3386858
+            ],
+            [
+              75.8087931,
+              12.3386858
+            ],
+            [
+              75.8087931,
+              12.3384881
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0019",
+        "damage_class": "minor_damage",
+        "damage_level": 1,
+        "damage_color": "#FBBF24",
+        "confidence": 0.61,
+        "review_status": "FLAGGED_FOR_REVIEW",
+        "needs_review": true,
+        "area_sqm": 484.0,
+        "elevation_m": 846.0,
+        "slope_deg": 10.5,
+        "class_probabilities": {
+          "undamaged": 0.13,
+          "minor_damage": 0.61,
+          "major_damage": 0.13,
+          "destroyed": 0.13
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8092161,
+              12.339072
+            ],
+            [
+              75.8094368,
+              12.339072
+            ],
+            [
+              75.8094368,
+              12.3391619
+            ],
+            [
+              75.8092161,
+              12.3391619
+            ],
+            [
+              75.8092161,
+              12.339072
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0020",
+        "damage_class": "minor_damage",
+        "damage_level": 1,
+        "damage_color": "#FBBF24",
+        "confidence": 0.787,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 240.0,
+        "elevation_m": 849.0,
+        "slope_deg": 8.5,
+        "class_probabilities": {
+          "undamaged": 0.071,
+          "minor_damage": 0.787,
+          "major_damage": 0.071,
+          "destroyed": 0.071
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8097035,
+              12.3395886
+            ],
+            [
+              75.8098138,
+              12.3395886
+            ],
+            [
+              75.8098138,
+              12.3397054
+            ],
+            [
+              75.8097035,
+              12.3397054
+            ],
+            [
+              75.8097035,
+              12.3395886
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0021",
+        "damage_class": "minor_damage",
+        "damage_level": 1,
+        "damage_color": "#FBBF24",
+        "confidence": 0.8,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 156.0,
+        "elevation_m": 852.0,
+        "slope_deg": 6.5,
+        "class_probabilities": {
+          "undamaged": 0.067,
+          "minor_damage": 0.8,
+          "major_damage": 0.067,
+          "destroyed": 0.067
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8101265,
+              12.3401051
+            ],
+            [
+              75.8102552,
+              12.3401051
+            ],
+            [
+              75.8102552,
+              12.3402488
+            ],
+            [
+              75.8101265,
+              12.3402488
+            ],
+            [
+              75.8101265,
+              12.3401051
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0022",
+        "damage_class": "minor_damage",
+        "damage_level": 1,
+        "damage_color": "#FBBF24",
+        "confidence": 0.813,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 224.0,
+        "elevation_m": 854.9,
+        "slope_deg": 4.5,
+        "class_probabilities": {
+          "undamaged": 0.062,
+          "minor_damage": 0.813,
+          "major_damage": 0.062,
+          "destroyed": 0.062
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8105495,
+              12.3406216
+            ],
+            [
+              75.8106966,
+              12.3406216
+            ],
+            [
+              75.8106966,
+              12.3407923
+            ],
+            [
+              75.8105495,
+              12.3407923
+            ],
+            [
+              75.8105495,
+              12.3406216
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0023",
+        "damage_class": "minor_damage",
+        "damage_level": 1,
+        "damage_color": "#FBBF24",
+        "confidence": 0.827,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 304.0,
+        "elevation_m": 857.9,
+        "slope_deg": 9.5,
+        "class_probabilities": {
+          "undamaged": 0.058,
+          "minor_damage": 0.827,
+          "major_damage": 0.058,
+          "destroyed": 0.058
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8008574,
+              12.3411382
+            ],
+            [
+              75.8010229,
+              12.3411382
+            ],
+            [
+              75.8010229,
+              12.3413358
+            ],
+            [
+              75.8008574,
+              12.3413358
+            ],
+            [
+              75.8008574,
+              12.3411382
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0024",
+        "damage_class": "minor_damage",
+        "damage_level": 1,
+        "damage_color": "#FBBF24",
+        "confidence": 0.84,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 396.0,
+        "elevation_m": 860.8,
+        "slope_deg": 6.5,
+        "class_probabilities": {
+          "undamaged": 0.053,
+          "minor_damage": 0.84,
+          "major_damage": 0.053,
+          "destroyed": 0.053
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8012804,
+              12.3417221
+            ],
+            [
+              75.8014643,
+              12.3417221
+            ],
+            [
+              75.8014643,
+              12.3418119
+            ],
+            [
+              75.8012804,
+              12.3418119
+            ],
+            [
+              75.8012804,
+              12.3417221
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0025",
+        "damage_class": "minor_damage",
+        "damage_level": 1,
+        "damage_color": "#FBBF24",
+        "confidence": 0.853,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 200.0,
+        "elevation_m": 863.8,
+        "slope_deg": 4.5,
+        "class_probabilities": {
+          "undamaged": 0.049,
+          "minor_damage": 0.853,
+          "major_damage": 0.049,
+          "destroyed": 0.049
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8017034,
+              12.3422386
+            ],
+            [
+              75.8019057,
+              12.3422386
+            ],
+            [
+              75.8019057,
+              12.3423554
+            ],
+            [
+              75.8017034,
+              12.3423554
+            ],
+            [
+              75.8017034,
+              12.3422386
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0026",
+        "damage_class": "minor_damage",
+        "damage_level": 1,
+        "damage_color": "#FBBF24",
+        "confidence": 0.867,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 286.0,
+        "elevation_m": 866.7,
+        "slope_deg": 9.5,
+        "class_probabilities": {
+          "undamaged": 0.044,
+          "minor_damage": 0.867,
+          "major_damage": 0.044,
+          "destroyed": 0.044
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8021264,
+              12.3427551
+            ],
+            [
+              75.8023471,
+              12.3427551
+            ],
+            [
+              75.8023471,
+              12.3428989
+            ],
+            [
+              75.8021264,
+              12.3428989
+            ],
+            [
+              75.8021264,
+              12.3427551
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0027",
+        "damage_class": "minor_damage",
+        "damage_level": 1,
+        "damage_color": "#FBBF24",
+        "confidence": 0.88,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 384.0,
+        "elevation_m": 869.6,
+        "slope_deg": 7.5,
+        "class_probabilities": {
+          "undamaged": 0.04,
+          "minor_damage": 0.88,
+          "major_damage": 0.04,
+          "destroyed": 0.04
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8087563,
+              12.3363008
+            ],
+            [
+              75.8088667,
+              12.3363008
+            ],
+            [
+              75.8088667,
+              12.3364714
+            ],
+            [
+              75.8087563,
+              12.3364714
+            ],
+            [
+              75.8087563,
+              12.3363008
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0028",
+        "damage_class": "major_damage",
+        "damage_level": 2,
+        "damage_color": "#F97316",
+        "confidence": 0.862,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 228.0,
+        "elevation_m": 833.8,
+        "slope_deg": 8.5,
+        "class_probabilities": {
+          "undamaged": 0.046,
+          "minor_damage": 0.046,
+          "major_damage": 0.862,
+          "destroyed": 0.046
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8092345,
+              12.3368891
+            ],
+            [
+              75.8093632,
+              12.3368891
+            ],
+            [
+              75.8093632,
+              12.3370868
+            ],
+            [
+              75.8092345,
+              12.3370868
+            ],
+            [
+              75.8092345,
+              12.3368891
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0029",
+        "damage_class": "major_damage",
+        "damage_level": 2,
+        "damage_color": "#F97316",
+        "confidence": 0.876,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 308.0,
+        "elevation_m": 837.1,
+        "slope_deg": 5.5,
+        "class_probabilities": {
+          "undamaged": 0.041,
+          "minor_damage": 0.041,
+          "major_damage": 0.876,
+          "destroyed": 0.041
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8097127,
+              12.3375449
+            ],
+            [
+              75.8098598,
+              12.3375449
+            ],
+            [
+              75.8098598,
+              12.3376347
+            ],
+            [
+              75.8097127,
+              12.3376347
+            ],
+            [
+              75.8097127,
+              12.3375449
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0030",
+        "damage_class": "major_damage",
+        "damage_level": 2,
+        "damage_color": "#F97316",
+        "confidence": 0.68,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 160.0,
+        "elevation_m": 840.5,
+        "slope_deg": 9.5,
+        "class_probabilities": {
+          "undamaged": 0.107,
+          "minor_damage": 0.107,
+          "major_damage": 0.68,
+          "destroyed": 0.107
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8028345,
+              12.3381333
+            ],
+            [
+              75.803,
+              12.3381333
+            ],
+            [
+              75.803,
+              12.3382501
+            ],
+            [
+              75.8028345,
+              12.3382501
+            ],
+            [
+              75.8028345,
+              12.3381333
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0031",
+        "damage_class": "major_damage",
+        "damage_level": 2,
+        "damage_color": "#F97316",
+        "confidence": 0.694,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 234.0,
+        "elevation_m": 843.9,
+        "slope_deg": 4.5,
+        "class_probabilities": {
+          "undamaged": 0.102,
+          "minor_damage": 0.102,
+          "major_damage": 0.694,
+          "destroyed": 0.102
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8033126,
+              12.3324335
+            ],
+            [
+              75.8034965,
+              12.3324335
+            ],
+            [
+              75.8034965,
+              12.3325773
+            ],
+            [
+              75.8033126,
+              12.3325773
+            ],
+            [
+              75.8033126,
+              12.3324335
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0032",
+        "damage_class": "major_damage",
+        "damage_level": 2,
+        "damage_color": "#F97316",
+        "confidence": 0.54,
+        "review_status": "FLAGGED_FOR_REVIEW",
+        "needs_review": true,
+        "area_sqm": 320.0,
+        "elevation_m": 812.2,
+        "slope_deg": 20.5,
+        "class_probabilities": {
+          "undamaged": 0.153,
+          "minor_damage": 0.153,
+          "major_damage": 0.54,
+          "destroyed": 0.153
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8037908,
+              12.3330219
+            ],
+            [
+              75.8039931,
+              12.3330219
+            ],
+            [
+              75.8039931,
+              12.3331926
+            ],
+            [
+              75.8037908,
+              12.3331926
+            ],
+            [
+              75.8037908,
+              12.3330219
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0033",
+        "damage_class": "major_damage",
+        "damage_level": 2,
+        "damage_color": "#F97316",
+        "confidence": 0.722,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 418.0,
+        "elevation_m": 815.5,
+        "slope_deg": 17.5,
+        "class_probabilities": {
+          "undamaged": 0.093,
+          "minor_damage": 0.093,
+          "major_damage": 0.722,
+          "destroyed": 0.093
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.804269,
+              12.3336103
+            ],
+            [
+              75.8044896,
+              12.3336103
+            ],
+            [
+              75.8044896,
+              12.3338079
+            ],
+            [
+              75.804269,
+              12.3338079
+            ],
+            [
+              75.804269,
+              12.3336103
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0034",
+        "damage_class": "major_damage",
+        "damage_level": 2,
+        "damage_color": "#F97316",
+        "confidence": 0.736,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 528.0,
+        "elevation_m": 818.9,
+        "slope_deg": 21.5,
+        "class_probabilities": {
+          "undamaged": 0.088,
+          "minor_damage": 0.088,
+          "major_damage": 0.736,
+          "destroyed": 0.088
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8048115,
+              12.3342661
+            ],
+            [
+              75.8049218,
+              12.3342661
+            ],
+            [
+              75.8049218,
+              12.3343559
+            ],
+            [
+              75.8048115,
+              12.3343559
+            ],
+            [
+              75.8048115,
+              12.3342661
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0035",
+        "damage_class": "major_damage",
+        "damage_level": 2,
+        "damage_color": "#F97316",
+        "confidence": 0.75,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 120.0,
+        "elevation_m": 822.2,
+        "slope_deg": 18.5,
+        "class_probabilities": {
+          "undamaged": 0.083,
+          "minor_damage": 0.083,
+          "major_damage": 0.75,
+          "destroyed": 0.083
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8052896,
+              12.3348545
+            ],
+            [
+              75.8054184,
+              12.3348545
+            ],
+            [
+              75.8054184,
+              12.3349713
+            ],
+            [
+              75.8052896,
+              12.3349713
+            ],
+            [
+              75.8052896,
+              12.3348545
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0036",
+        "damage_class": "major_damage",
+        "damage_level": 2,
+        "damage_color": "#F97316",
+        "confidence": 0.764,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 182.0,
+        "elevation_m": 825.6,
+        "slope_deg": 22.5,
+        "class_probabilities": {
+          "undamaged": 0.079,
+          "minor_damage": 0.079,
+          "major_damage": 0.764,
+          "destroyed": 0.079
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8057678,
+              12.3354429
+            ],
+            [
+              75.8059149,
+              12.3354429
+            ],
+            [
+              75.8059149,
+              12.3355866
+            ],
+            [
+              75.8057678,
+              12.3355866
+            ],
+            [
+              75.8057678,
+              12.3354429
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0037",
+        "damage_class": "major_damage",
+        "damage_level": 2,
+        "damage_color": "#F97316",
+        "confidence": 0.778,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 256.0,
+        "elevation_m": 829.0,
+        "slope_deg": 19.5,
+        "class_probabilities": {
+          "undamaged": 0.074,
+          "minor_damage": 0.074,
+          "major_damage": 0.778,
+          "destroyed": 0.074
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.806246,
+              12.3360313
+            ],
+            [
+              75.8064115,
+              12.3360313
+            ],
+            [
+              75.8064115,
+              12.3362019
+            ],
+            [
+              75.806246,
+              12.3362019
+            ],
+            [
+              75.806246,
+              12.3360313
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0038",
+        "damage_class": "major_damage",
+        "damage_level": 2,
+        "damage_color": "#F97316",
+        "confidence": 0.792,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 342.0,
+        "elevation_m": 832.3,
+        "slope_deg": 4.5,
+        "class_probabilities": {
+          "undamaged": 0.069,
+          "minor_damage": 0.069,
+          "major_damage": 0.792,
+          "destroyed": 0.069
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8067241,
+              12.3366197
+            ],
+            [
+              75.8069081,
+              12.3366197
+            ],
+            [
+              75.8069081,
+              12.3368173
+            ],
+            [
+              75.8067241,
+              12.3368173
+            ],
+            [
+              75.8067241,
+              12.3366197
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0039",
+        "damage_class": "major_damage",
+        "damage_level": 2,
+        "damage_color": "#F97316",
+        "confidence": 0.806,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 440.0,
+        "elevation_m": 835.6,
+        "slope_deg": 8.5,
+        "class_probabilities": {
+          "undamaged": 0.065,
+          "minor_damage": 0.065,
+          "major_damage": 0.806,
+          "destroyed": 0.065
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8072023,
+              12.3372754
+            ],
+            [
+              75.8074046,
+              12.3372754
+            ],
+            [
+              75.8074046,
+              12.3373653
+            ],
+            [
+              75.8072023,
+              12.3373653
+            ],
+            [
+              75.8072023,
+              12.3372754
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0040",
+        "damage_class": "major_damage",
+        "damage_level": 2,
+        "damage_color": "#F97316",
+        "confidence": 0.82,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 220.0,
+        "elevation_m": 839.0,
+        "slope_deg": 5.5,
+        "class_probabilities": {
+          "undamaged": 0.06,
+          "minor_damage": 0.06,
+          "major_damage": 0.82,
+          "destroyed": 0.06
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8076805,
+              12.3378638
+            ],
+            [
+              75.8079012,
+              12.3378638
+            ],
+            [
+              75.8079012,
+              12.3379806
+            ],
+            [
+              75.8076805,
+              12.3379806
+            ],
+            [
+              75.8076805,
+              12.3378638
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0041",
+        "damage_class": "destroyed",
+        "damage_level": 3,
+        "damage_color": "#EF4444",
+        "confidence": 0.915,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 312.0,
+        "elevation_m": 842.4,
+        "slope_deg": 9.5,
+        "class_probabilities": {
+          "undamaged": 0.028,
+          "minor_damage": 0.028,
+          "major_damage": 0.028,
+          "destroyed": 0.915
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.808223,
+              12.332164
+            ],
+            [
+              75.8083333,
+              12.332164
+            ],
+            [
+              75.8083333,
+              12.3323078
+            ],
+            [
+              75.808223,
+              12.3323078
+            ],
+            [
+              75.808223,
+              12.332164
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0042",
+        "damage_class": "destroyed",
+        "damage_level": 3,
+        "damage_color": "#EF4444",
+        "confidence": 0.926,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 192.0,
+        "elevation_m": 810.7,
+        "slope_deg": 18.5,
+        "class_probabilities": {
+          "undamaged": 0.025,
+          "minor_damage": 0.025,
+          "major_damage": 0.025,
+          "destroyed": 0.926
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8087012,
+              12.3327524
+            ],
+            [
+              75.8088299,
+              12.3327524
+            ],
+            [
+              75.8088299,
+              12.3329231
+            ],
+            [
+              75.8087012,
+              12.3329231
+            ],
+            [
+              75.8087012,
+              12.3327524
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0043",
+        "damage_class": "destroyed",
+        "damage_level": 3,
+        "damage_color": "#EF4444",
+        "confidence": 0.937,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 266.0,
+        "elevation_m": 814.0,
+        "slope_deg": 22.5,
+        "class_probabilities": {
+          "undamaged": 0.021,
+          "minor_damage": 0.021,
+          "major_damage": 0.021,
+          "destroyed": 0.937
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8091793,
+              12.3333408
+            ],
+            [
+              75.8093265,
+              12.3333408
+            ],
+            [
+              75.8093265,
+              12.3335384
+            ],
+            [
+              75.8091793,
+              12.3335384
+            ],
+            [
+              75.8091793,
+              12.3333408
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0044",
+        "damage_class": "destroyed",
+        "damage_level": 3,
+        "damage_color": "#EF4444",
+        "confidence": 0.56,
+        "review_status": "FLAGGED_FOR_REVIEW",
+        "needs_review": true,
+        "area_sqm": 352.0,
+        "elevation_m": 817.4,
+        "slope_deg": 19.5,
+        "class_probabilities": {
+          "undamaged": 0.147,
+          "minor_damage": 0.147,
+          "major_damage": 0.147,
+          "destroyed": 0.56
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8096575,
+              12.3339966
+            ],
+            [
+              75.809823,
+              12.3339966
+            ],
+            [
+              75.809823,
+              12.3340864
+            ],
+            [
+              75.8096575,
+              12.3340864
+            ],
+            [
+              75.8096575,
+              12.3339966
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0045",
+        "damage_class": "destroyed",
+        "damage_level": 3,
+        "damage_color": "#EF4444",
+        "confidence": 0.79,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 180.0,
+        "elevation_m": 820.8,
+        "slope_deg": 16.5,
+        "class_probabilities": {
+          "undamaged": 0.07,
+          "minor_damage": 0.07,
+          "major_damage": 0.07,
+          "destroyed": 0.79
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8027793,
+              12.334585
+            ],
+            [
+              75.8029632,
+              12.334585
+            ],
+            [
+              75.8029632,
+              12.3347018
+            ],
+            [
+              75.8027793,
+              12.3347018
+            ],
+            [
+              75.8027793,
+              12.334585
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0046",
+        "damage_class": "destroyed",
+        "damage_level": 3,
+        "damage_color": "#EF4444",
+        "confidence": 0.801,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 260.0,
+        "elevation_m": 824.1,
+        "slope_deg": 18.5,
+        "class_probabilities": {
+          "undamaged": 0.066,
+          "minor_damage": 0.066,
+          "major_damage": 0.066,
+          "destroyed": 0.801
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8032574,
+              12.3351734
+            ],
+            [
+              75.8034597,
+              12.3351734
+            ],
+            [
+              75.8034597,
+              12.3353171
+            ],
+            [
+              75.8032574,
+              12.3353171
+            ],
+            [
+              75.8032574,
+              12.3351734
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0047",
+        "damage_class": "destroyed",
+        "damage_level": 3,
+        "damage_color": "#EF4444",
+        "confidence": 0.813,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 352.0,
+        "elevation_m": 827.5,
+        "slope_deg": 22.5,
+        "class_probabilities": {
+          "undamaged": 0.062,
+          "minor_damage": 0.062,
+          "major_damage": 0.062,
+          "destroyed": 0.813
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8037356,
+              12.3357618
+            ],
+            [
+              75.8039563,
+              12.3357618
+            ],
+            [
+              75.8039563,
+              12.3359324
+            ],
+            [
+              75.8037356,
+              12.3359324
+            ],
+            [
+              75.8037356,
+              12.3357618
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0048",
+        "damage_class": "destroyed",
+        "damage_level": 3,
+        "damage_color": "#EF4444",
+        "confidence": 0.824,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 456.0,
+        "elevation_m": 830.8,
+        "slope_deg": 7.5,
+        "class_probabilities": {
+          "undamaged": 0.059,
+          "minor_damage": 0.059,
+          "major_damage": 0.059,
+          "destroyed": 0.824
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8042781,
+              12.3363502
+            ],
+            [
+              75.8043885,
+              12.3363502
+            ],
+            [
+              75.8043885,
+              12.3365478
+            ],
+            [
+              75.8042781,
+              12.3365478
+            ],
+            [
+              75.8042781,
+              12.3363502
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0049",
+        "damage_class": "destroyed",
+        "damage_level": 3,
+        "damage_color": "#EF4444",
+        "confidence": 0.835,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 264.0,
+        "elevation_m": 834.1,
+        "slope_deg": 4.5,
+        "class_probabilities": {
+          "undamaged": 0.055,
+          "minor_damage": 0.055,
+          "major_damage": 0.055,
+          "destroyed": 0.835
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8047563,
+              12.3370059
+            ],
+            [
+              75.804885,
+              12.3370059
+            ],
+            [
+              75.804885,
+              12.3370958
+            ],
+            [
+              75.8047563,
+              12.3370958
+            ],
+            [
+              75.8047563,
+              12.3370059
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "building_id": "BLD-0050",
+        "damage_class": "destroyed",
+        "damage_level": 3,
+        "damage_color": "#EF4444",
+        "confidence": 0.847,
+        "review_status": "AUTO_VERIFIED",
+        "needs_review": false,
+        "area_sqm": 140.0,
+        "elevation_m": 837.5,
+        "slope_deg": 8.5,
+        "class_probabilities": {
+          "undamaged": 0.051,
+          "minor_damage": 0.051,
+          "major_damage": 0.051,
+          "destroyed": 0.847
+        },
+        "model_version": "Siamese-UNet-v1.0.0"
+      }
+    }
+  ]
+}

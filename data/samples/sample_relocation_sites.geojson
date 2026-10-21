@@ -1,0 +1,265 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8084989,
+              12.3410932
+            ],
+            [
+              75.8117173,
+              12.3410932
+            ],
+            [
+              75.8117173,
+              12.3437882
+            ],
+            [
+              75.8084989,
+              12.3437882
+            ],
+            [
+              75.8084989,
+              12.3410932
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "site_id": "SITE-A1-GOVT-PLATEAU",
+        "site_name": "Government Revenue Plateau Land",
+        "total_area_sqm": 85000.0,
+        "usable_fraction": 0.7,
+        "terrain_slope_deg": 3.8,
+        "distance_to_road_km": 0.25,
+        "service_proximity_score": 0.88,
+        "buffer_from_hazard_m": 720.0,
+        "in_red_zone": false,
+        "land_tenure_status": "AVAILABLE",
+        "water_availability": "Verified Borewell + Municipal Line",
+        "power_grid_access": "Substation within 1.2 km"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8006827,
+              12.3419916
+            ],
+            [
+              75.8039011,
+              12.3419916
+            ],
+            [
+              75.8039011,
+              12.3451356
+            ],
+            [
+              75.8006827,
+              12.3451356
+            ],
+            [
+              75.8006827,
+              12.3419916
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "site_id": "SITE-B2-MUNICIPAL-RESERVE",
+        "site_name": "Municipal Institutional Reserve Field",
+        "total_area_sqm": 62000.0,
+        "usable_fraction": 0.65,
+        "terrain_slope_deg": 5.2,
+        "distance_to_road_km": 0.4,
+        "service_proximity_score": 0.75,
+        "buffer_from_hazard_m": 580.0,
+        "in_red_zone": false,
+        "land_tenure_status": "AVAILABLE",
+        "water_availability": "River Lift Scheme",
+        "power_grid_access": "Distribution transformer within 600 m"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8121771,
+              12.3401949
+            ],
+            [
+              75.8144759,
+              12.3401949
+            ],
+            [
+              75.8144759,
+              12.3424407
+            ],
+            [
+              75.8121771,
+              12.3424407
+            ],
+            [
+              75.8121771,
+              12.3401949
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "site_id": "SITE-C3-AGRI-EXTENSION",
+        "site_name": "Fallow Agriculture Terrace",
+        "total_area_sqm": 42000.0,
+        "usable_fraction": 0.6,
+        "terrain_slope_deg": 7.5,
+        "distance_to_road_km": 0.85,
+        "service_proximity_score": 0.62,
+        "buffer_from_hazard_m": 420.0,
+        "in_red_zone": false,
+        "land_tenure_status": "AVAILABLE",
+        "water_availability": "Groundwater potential good",
+        "power_grid_access": "Low-tension line accessible"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8048207,
+              12.3401949
+            ],
+            [
+              75.8075793,
+              12.3401949
+            ],
+            [
+              75.8075793,
+              12.3418119
+            ],
+            [
+              75.8048207,
+              12.3418119
+            ],
+            [
+              75.8048207,
+              12.3401949
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "site_id": "SITE-D4-COMMUNITY-GROUND",
+        "site_name": "Gram Panchayat Open Meadow",
+        "total_area_sqm": 28000.0,
+        "usable_fraction": 0.65,
+        "terrain_slope_deg": 6.0,
+        "distance_to_road_km": 0.15,
+        "service_proximity_score": 0.82,
+        "buffer_from_hazard_m": 350.0,
+        "in_red_zone": false,
+        "land_tenure_status": "AVAILABLE",
+        "water_availability": "Overhead tank adjacent",
+        "power_grid_access": "Immediate 3-phase grid"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.7983838,
+              12.3379492
+            ],
+            [
+              75.8006827,
+              12.3379492
+            ],
+            [
+              75.8006827,
+              12.3394763
+            ],
+            [
+              75.7983838,
+              12.3394763
+            ],
+            [
+              75.7983838,
+              12.3379492
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "site_id": "SITE-E5-WEST-CLIFF-EXCLUDED",
+        "site_name": "Western Scarp Escarpment",
+        "total_area_sqm": 35000.0,
+        "usable_fraction": 0.5,
+        "terrain_slope_deg": 22.4,
+        "distance_to_road_km": 1.2,
+        "service_proximity_score": 0.35,
+        "buffer_from_hazard_m": 120.0,
+        "in_red_zone": false,
+        "land_tenure_status": "AVAILABLE"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8025218,
+              12.3330084
+            ],
+            [
+              75.8052805,
+              12.3330084
+            ],
+            [
+              75.8052805,
+              12.3348051
+            ],
+            [
+              75.8025218,
+              12.3348051
+            ],
+            [
+              75.8025218,
+              12.3330084
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "site_id": "SITE-F6-RIVER-BASIN-EXCLUDED",
+        "site_name": "Lower Flood Basin Flat",
+        "total_area_sqm": 48000.0,
+        "usable_fraction": 0.6,
+        "terrain_slope_deg": 2.1,
+        "distance_to_road_km": 0.3,
+        "service_proximity_score": 0.5,
+        "buffer_from_hazard_m": 0.0,
+        "in_red_zone": true,
+        "land_tenure_status": "AVAILABLE"
+      }
+    }
+  ]
+}
