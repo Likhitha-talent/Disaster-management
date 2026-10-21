@@ -12,8 +12,7 @@ import subprocess
 def main():
     print("=" * 70)
     print("  AI-POWERED POST-DISASTER DAMAGE ASSESSMENT & RELOCATION PLATFORM")
-    print("  The National Institute of Engineering, Mysuru • Dept. of ISE")
-    print("  Course: BIS586 (Batch B10) | Guide: Nandini P, Assistant Professor")
+    print("  Spatial Decision Support System • Satellite Analytics & TOPSIS")
     print("=" * 70)
 
     # Add project root to sys.path

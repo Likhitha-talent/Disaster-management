@@ -24,21 +24,6 @@ def generate_sample_study_dataset(base_dir: str):
     project_metadata = {
         "id": "proj-karnataka-wghats-2026",
         "name": "Kodagu-Wayanad Sector Monsoon Landslide & Flood Assessment",
-        "institution": "The National Institute of Engineering, Mysuru",
-        "department": "Department of Information Science and Engineering",
-        "academic_year": "2026-27",
-        "course_code": "BIS586",
-        "batch_number": "B10",
-        "guide": {
-            "name": "Nandini P",
-            "designation": "Assistant Professor"
-        },
-        "investigators": [
-            {"name": "Likhitha Shree L C", "usn": "4NI24IS091"},
-            {"name": "Namratha M Sherughar", "usn": "4NI24IS114"},
-            {"name": "Nischitha R N", "usn": "4NI24IS119"},
-            {"name": "Panchami Urs S", "usn": "4NI24IS123"}
-        ],
         "disaster_type": "Monsoon Landslide & Flash Flood",
         "event_date": "2026-08-14",
         "imagery_sources": [

@@ -26,8 +26,7 @@ def health_check():
     return {
         "status": "healthy",
         "service": "AI-Powered Post-Disaster Damage Assessment & Relocation API",
-        "academic_year": "2026-27",
-        "institution": "The National Institute of Engineering, Mysuru",
+        "version": "1.0.0",
     }
 
 
