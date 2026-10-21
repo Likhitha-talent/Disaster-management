@@ -86,8 +86,17 @@ def update_building_review(project_id: str, building_id: str, payload: BuildingR
     return {"status": "SUCCESS", "building": updated}
 
 
+@router.get("/projects/{project_id}/weather")
+def get_project_live_weather(project_id: str):
+    return store.get_live_weather()
+
+
 @router.post("/projects/{project_id}/risk-analysis")
-def run_risk_analysis(project_id: str, config: AHPWeightConfig):
+def run_risk_analysis(
+    project_id: str,
+    config: AHPWeightConfig,
+    use_live_weather: bool = Query(False, description="Trigger dynamic live weather inundation integration")
+):
     weights_dict = {
         "damage_density": config.damage_density,
         "flood_hydro_exposure": config.flood_hydro_exposure,
@@ -99,13 +108,17 @@ def run_risk_analysis(project_id: str, config: AHPWeightConfig):
         weights_dict=weights_dict,
         red_threshold=config.red_threshold,
         amber_threshold=config.amber_threshold,
+        use_live_weather=use_live_weather,
     )
     return result
 
 
 @router.get("/projects/{project_id}/risk-zones")
-def get_risk_zones(project_id: str):
-    return store.get_hazard_zones()
+def get_risk_zones(
+    project_id: str,
+    use_live_weather: bool = Query(False, description="Whether to apply real-time meteorological inundation")
+):
+    return store.get_hazard_zones(use_live_weather=use_live_weather)
 
 
 @router.post("/projects/{project_id}/relocation-analysis")

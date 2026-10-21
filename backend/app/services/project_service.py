@@ -10,6 +10,7 @@ from typing import Dict, List, Any, Optional
 import numpy as np
 
 from gis.hazard_analysis.overlay import HazardOverlayEngine
+from gis.hazard_analysis.weather_service import WeatherHazardService
 from gis.relocation.topsis import RelocationDecisionEngine
 
 
@@ -56,11 +57,45 @@ class ProjectDataStore:
         # Initialize engines
         self.hazard_engine = HazardOverlayEngine()
         self.relocation_engine = RelocationDecisionEngine()
+        self.weather_service = WeatherHazardService()
 
         # Run initial ranking
         self.screened_relocation_results = self.relocation_engine.screen_and_rank_sites(
             self.candidate_sites_data
         )
+
+    def get_live_weather(self) -> Dict[str, Any]:
+        return self.weather_service.fetch_live_weather()
+
+    def get_hazard_zones(self, use_live_weather: bool = False) -> Dict[str, Any]:
+        if not use_live_weather:
+            return {
+                "type": "FeatureCollection",
+                "metadata": {"mode": "SATELLITE_BASELINE", "description": "Topographical and structural baseline hazard screening"},
+                "features": self.hazard_zones_data
+            }
+
+        # Dynamic live weather integration mode
+        weather = self.get_live_weather()
+        hydro_factor = weather.get("dynamic_hydro_risk_factor", 0.5)
+
+        # Scale flood exposure across zones according to live precipitation alert
+        dynamic_zones = copy.deepcopy(self.hazard_zones_data)
+        for zone in dynamic_zones:
+            props = zone.get("properties", {})
+            orig_hydro = props.get("flood_hydro_exposure", 0.5)
+            # Blend baseline terrain flow with current live rainfall trigger
+            blended_hydro = min(1.0, max(0.0, 0.4 * orig_hydro + 0.6 * hydro_factor))
+            props["flood_hydro_exposure"] = round(blended_hydro, 3)
+            props["live_weather_sync"] = True
+            props["live_rainfall_24h_mm"] = weather.get("cumulative_24h_rainfall_mm")
+            props["live_alert_level"] = weather.get("alert_level")
+
+        # Process with AHP engine
+        result = self.hazard_engine.process_grid_zones(dynamic_zones)
+        result["metadata"]["mode"] = "LIVE_WEATHER_DRIVEN"
+        result["metadata"]["weather"] = weather
+        return result
 
     def get_project_metadata(self) -> Dict[str, Any]:
         return self.project_metadata
@@ -160,6 +195,7 @@ class ProjectDataStore:
         weights_dict: Dict[str, float],
         red_threshold: float = 0.65,
         amber_threshold: float = 0.35,
+        use_live_weather: bool = False,
     ) -> Dict[str, Any]:
         # Custom weights normalized
         total_w = sum(weights_dict.values())
@@ -168,14 +204,7 @@ class ProjectDataStore:
         self.hazard_engine.red_threshold = red_threshold
         self.hazard_engine.amber_threshold = amber_threshold
 
-        result = self.hazard_engine.process_grid_zones(self.hazard_zones_data)
-        return result
-
-    def get_hazard_zones(self) -> Dict[str, Any]:
-        return {
-            "type": "FeatureCollection",
-            "features": self.hazard_zones_data
-        }
+        return self.get_hazard_zones(use_live_weather=use_live_weather)
 
     def run_relocation_analysis(
         self,

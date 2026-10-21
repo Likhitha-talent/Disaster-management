@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Post-Disaster Damage Assessment & Relocation Platform</title>
   
-  <!-- Tailwind CSS CDN -->
+  <!-- Inter Font & Tailwind CSS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   
   <!-- Leaflet CSS & JS -->
@@ -16,211 +19,309 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
     .legend-box {
-      width: 14px;
-      height: 14px;
+      width: 12px;
+      height: 12px;
       display: inline-block;
       border-radius: 3px;
       margin-right: 6px;
     }
     #map {
-      height: calc(100vh - 128px);
+      height: 100%;
       width: 100%;
       border-radius: 0.75rem;
       z-index: 10;
     }
     .custom-scroll::-webkit-scrollbar {
-      width: 6px;
+      width: 5px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
     }
     .custom-scroll::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 3px;
+      background: #334155;
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #475569;
     }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
 
-  <!-- Header -->
-  <header class="bg-slate-800 border-b border-slate-700 px-6 py-3 flex items-center justify-between shadow-lg sticky top-0 z-50">
-    <div class="flex items-center space-x-3">
-      <div class="bg-indigo-600 p-2.5 rounded-lg text-white shadow-md">
-        <i data-lucide="satellite" class="w-6 h-6"></i>
+  <!-- Top Navigation Header -->
+  <header class="bg-slate-900/95 backdrop-blur-md border-b border-slate-800/80 px-6 py-2.5 flex items-center justify-between shadow-xl sticky top-0 z-50">
+    <div class="flex items-center space-x-3.5">
+      <div class="bg-gradient-to-tr from-indigo-600 to-indigo-500 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/20 ring-1 ring-white/20">
+        <i data-lucide="shield-alert" class="w-5 h-5"></i>
       </div>
       <div>
-        <h1 class="text-lg font-bold text-white flex items-center gap-2">
-          AI-Powered Post-Disaster Damage Assessment & Relocation Platform
-          <span class="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-medium">Prototype v1.0</span>
-        </h1>
-        <p class="text-xs text-slate-400">
-          Spatial Decision Support System • Satellite Image Analysis & Safe Habitation Prioritization
+        <div class="flex items-center gap-2">
+          <h1 class="text-sm font-bold tracking-tight text-white">
+            Post-Disaster Spatial Decision Platform
+          </h1>
+          <span class="text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full font-semibold">
+            AI + GIS Decision Engine
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-400">
+          Bi-Temporal Satellite Damage Assessment • Multi-Hazard AHP Screening • TOPSIS Safe Relocation
         </p>
       </div>
     </div>
 
-    <!-- Navigation Tabs -->
-    <nav class="flex items-center space-x-1 bg-slate-900/80 p-1 rounded-xl border border-slate-700">
-      <button onclick="switchTab('overview')" id="tab-overview" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 bg-indigo-600 text-white shadow">
-        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Overview
+    <!-- Center Navigation Tabs -->
+    <nav class="flex items-center space-x-1 bg-slate-950/70 p-1 rounded-xl border border-slate-800/90 shadow-inner">
+      <button onclick="switchTab('overview')" id="tab-overview" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 bg-indigo-600 text-white shadow-md transition-all">
+        <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> Overview
       </button>
-      <button onclick="switchTab('damage')" id="tab-damage" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800">
-        <i data-lucide="activity" class="w-4 h-4"></i> Damage Assessment
+      <button onclick="switchTab('damage')" id="tab-damage" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all">
+        <i data-lucide="activity" class="w-3.5 h-3.5"></i> Damage Assessment
       </button>
-      <button onclick="switchTab('hazard')" id="tab-hazard" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800">
-        <i data-lucide="alert-triangle" class="w-4 h-4"></i> Hazard Screening (AHP)
+      <button onclick="switchTab('hazard')" id="tab-hazard" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all">
+        <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> Hazard Screening
       </button>
-      <button onclick="switchTab('relocation')" id="tab-relocation" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800">
-        <i data-lucide="navigation" class="w-4 h-4"></i> Relocation (TOPSIS)
+      <button onclick="switchTab('relocation')" id="tab-relocation" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all">
+        <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Safe Relocation
       </button>
-      <button onclick="switchTab('review')" id="tab-review" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800">
-        <i data-lucide="file-check" class="w-4 h-4"></i> Human Review & Reports
+      <button onclick="switchTab('review')" id="tab-review" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all">
+        <i data-lucide="file-check-2" class="w-3.5 h-3.5"></i> Review & Reports
       </button>
     </nav>
 
-    <!-- Quick Status Badge -->
-    <div class="flex items-center space-x-2">
-      <span class="inline-flex items-center gap-1 text-xs px-2.5 py-1 bg-slate-700/60 text-slate-300 rounded-md border border-slate-600">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        API Online :8000
-      </span>
+    <!-- Right Mode & Live Weather Status -->
+    <div class="flex items-center space-x-2.5">
+      <!-- Live Weather Pill -->
+      <div id="weather-status-pill" class="flex items-center gap-2 bg-slate-950/80 border border-slate-800 px-3 py-1.5 rounded-lg text-xs shadow-sm">
+        <i data-lucide="cloud-rain" class="w-4 h-4 text-sky-400" id="weather-icon-top"></i>
+        <div class="flex flex-col text-right">
+          <div class="flex items-center gap-1.5">
+            <span class="font-mono font-semibold text-white" id="top-temp">--°C</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          </div>
+          <span class="text-[10px] text-slate-400" id="top-rain-summary">Live Weather Synced</span>
+        </div>
+      </div>
+
+      <!-- Assessment Mode Toggle (Satellite Baseline vs Live Weather Inundation) -->
+      <div class="flex items-center bg-slate-950/90 p-1 rounded-xl border border-slate-800 text-xs">
+        <button id="mode-btn-baseline" onclick="setRiskMode('baseline')" class="px-2.5 py-1 rounded-lg font-medium transition-all bg-indigo-600 text-white shadow">
+          🛰️ Satellite
+        </button>
+        <button id="mode-btn-weather" onclick="setRiskMode('weather')" class="px-2.5 py-1 rounded-lg font-medium transition-all text-slate-400 hover:text-white">
+          ⚡ Live Weather
+        </button>
+      </div>
     </div>
   </header>
 
-  <!-- Main Content Layout -->
-  <div class="flex-1 flex overflow-hidden p-3 gap-3">
+  <!-- Main Viewport Layout -->
+  <main class="flex-1 flex overflow-hidden p-3 gap-3">
     
-    <!-- Left / Center Interactive Map -->
-    <div class="flex-1 flex flex-col bg-slate-800 rounded-xl border border-slate-700 p-2 shadow-inner relative">
+    <!-- Left Map Viewport -->
+    <div class="flex-1 flex flex-col bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl relative overflow-hidden">
       <div id="map"></div>
       
-      <!-- Map Layer Quick Floating Toolbar -->
-      <div class="absolute top-4 right-4 z-[500] bg-slate-900/90 backdrop-blur border border-slate-700 p-2.5 rounded-lg text-xs shadow-xl flex flex-col gap-2">
+      <!-- Top-Right Floating Controls (Basemap & Overlays) -->
+      <div class="absolute top-4 right-4 z-[500] bg-slate-950/90 backdrop-blur-md border border-slate-800/90 p-3 rounded-xl text-xs shadow-2xl flex flex-col gap-2.5 w-56">
         <div>
-          <span class="font-semibold text-slate-300 text-[11px] uppercase tracking-wider block mb-1">Base Map</span>
-          <select id="basemap-select" onchange="switchBaseMap(this.value)" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-xs text-white">
+          <span class="font-bold text-slate-400 text-[10px] uppercase tracking-wider block mb-1">Basemap Imagery</span>
+          <select id="basemap-select" onchange="switchBaseMap(this.value)" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500">
             <option value="satellite" selected>🛰️ Satellite (Esri Imagery)</option>
-            <option value="osm">🗺️ Street Map (OpenStreetMap)</option>
-            <option value="topo">⛰️ Topographic (Esri Topo)</option>
+            <option value="osm">🗺️ OpenStreetMap (Streets)</option>
+            <option value="topo">⛰️ Topographic (Terrain)</option>
           </select>
         </div>
 
-        <div class="border-t border-slate-800 pt-1.5 flex flex-col gap-1.5">
-          <span class="font-semibold text-slate-300 text-[11px] uppercase tracking-wider mb-0.5">Overlays</span>
-          <label class="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
-            <input type="checkbox" id="toggle-buildings" checked onchange="toggleLayer('buildings')" class="rounded bg-slate-800 border-slate-600 text-indigo-500 focus:ring-0">
-            <span>Building Footprints</span>
+        <div class="border-t border-slate-800/80 pt-2 flex flex-col gap-2">
+          <span class="font-bold text-slate-400 text-[10px] uppercase tracking-wider">Active GIS Overlays</span>
+          
+          <label class="flex items-center justify-between cursor-pointer text-slate-300 hover:text-white">
+            <span class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+              Building Footprints
+            </span>
+            <input type="checkbox" id="toggle-buildings" checked onchange="toggleLayer('buildings')" class="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0">
           </label>
-          <label class="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
-            <input type="checkbox" id="toggle-hazards" checked onchange="toggleLayer('hazards')" class="rounded bg-slate-800 border-slate-600 text-indigo-500 focus:ring-0">
-            <span>Hazard Screening Zones</span>
+
+          <label class="flex items-center justify-between cursor-pointer text-slate-300 hover:text-white">
+            <span class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+              Hazard Screening Zones
+            </span>
+            <input type="checkbox" id="toggle-hazards" checked onchange="toggleLayer('hazards')" class="rounded bg-slate-900 border-slate-700 text-red-600 focus:ring-0">
           </label>
-          <label class="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
-            <input type="checkbox" id="toggle-relocation" checked onchange="toggleLayer('relocation')" class="rounded bg-slate-800 border-slate-600 text-indigo-500 focus:ring-0">
-            <span>Relocation Candidate Sites</span>
+
+          <label class="flex items-center justify-between cursor-pointer text-slate-300 hover:text-white">
+            <span class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+              Relocation Safe Sites
+            </span>
+            <input type="checkbox" id="toggle-relocation" checked onchange="toggleLayer('relocation')" class="rounded bg-slate-900 border-slate-700 text-purple-600 focus:ring-0">
           </label>
         </div>
       </div>
 
-      <!-- Map Legend -->
-      <div class="absolute bottom-6 left-6 z-[500] bg-slate-900/90 backdrop-blur border border-slate-700 p-3 rounded-lg text-xs shadow-xl flex flex-wrap items-center gap-4">
+      <!-- Bottom Map Legend -->
+      <div class="absolute bottom-5 left-5 z-[500] bg-slate-950/90 backdrop-blur-md border border-slate-800/90 px-4 py-2.5 rounded-xl text-xs shadow-2xl flex items-center gap-5">
         <div>
-          <span class="font-bold text-slate-400 uppercase text-[10px] block mb-1">Building Damage</span>
-          <div class="flex items-center gap-3">
+          <span class="font-bold text-slate-400 uppercase text-[9px] block mb-1 tracking-wider">Building Damage</span>
+          <div class="flex items-center gap-3 text-[11px]">
             <span class="flex items-center"><span class="legend-box" style="background: #10B981;"></span>Undamaged</span>
             <span class="flex items-center"><span class="legend-box" style="background: #FBBF24;"></span>Minor</span>
             <span class="flex items-center"><span class="legend-box" style="background: #F97316;"></span>Major</span>
             <span class="flex items-center"><span class="legend-box" style="background: #EF4444;"></span>Destroyed</span>
           </div>
         </div>
-        <div class="border-l border-slate-700 pl-4">
-          <span class="font-bold text-slate-400 uppercase text-[10px] block mb-1">Hazard Zones (AHP)</span>
-          <div class="flex items-center gap-3">
-            <span class="flex items-center"><span class="legend-box" style="background: #DC2626;"></span>Red (High Risk)</span>
-            <span class="flex items-center"><span class="legend-box" style="background: #D97706;"></span>Amber (Caution)</span>
-            <span class="flex items-center"><span class="legend-box" style="background: #059669;"></span>Green (Stable)</span>
+        <div class="border-l border-slate-800 pl-4">
+          <span class="font-bold text-slate-400 uppercase text-[9px] block mb-1 tracking-wider">AHP Hazard Zones</span>
+          <div class="flex items-center gap-3 text-[11px]">
+            <span class="flex items-center"><span class="legend-box" style="background: #DC2626;"></span>Red Zone</span>
+            <span class="flex items-center"><span class="legend-box" style="background: #D97706;"></span>Amber Zone</span>
+            <span class="flex items-center"><span class="legend-box" style="background: #059669;"></span>Green Zone</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Right Control & Analytics Sidebar (Fixed width 420px) -->
-    <div class="w-[430px] flex flex-col bg-slate-800 rounded-xl border border-slate-700 p-4 shadow-xl overflow-y-auto custom-scroll">
+    <!-- Right Control & Analytics Sidebar (Clean 440px Panel) -->
+    <div class="w-[440px] flex flex-col bg-slate-900/90 backdrop-blur rounded-2xl border border-slate-800 p-4 shadow-2xl overflow-y-auto custom-scroll">
       
       <!-- ================= TAB 1: OVERVIEW ================= -->
       <div id="panel-overview" class="tab-panel space-y-4">
-        <div class="border-b border-slate-700 pb-3">
-          <span class="text-xs uppercase font-bold tracking-wider text-indigo-400">Study Sector</span>
-          <h2 class="text-base font-bold text-white" id="proj-name">Kodagu-Wayanad Landslide & Flood Sector</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Disaster Type: Monsoon Flash Flood & Landslides (Aug 2026)</p>
+        
+        <!-- Sector Header Card -->
+        <div class="bg-gradient-to-r from-slate-950 to-slate-900 border border-slate-800 p-3.5 rounded-xl shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold tracking-wider text-indigo-400 uppercase">Study Sector</span>
+            <span id="active-mode-badge" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+              Satellite Baseline Mode
+            </span>
+          </div>
+          <h2 class="text-sm font-bold text-white mt-1">Kodagu-Wayanad Landslide & Flood Impact Sector</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Bi-temporal satellite damage assessment with dynamic hazard overlay</p>
         </div>
 
-        <!-- Metric Cards Grid -->
-        <div class="grid grid-cols-2 gap-2.5">
-          <div class="bg-slate-900/80 border border-slate-700/80 p-3 rounded-lg">
-            <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
-              <span>Buildings Assessed</span>
-              <i data-lucide="home" class="w-4 h-4 text-indigo-400"></i>
-            </div>
-            <div class="text-2xl font-bold text-white" id="kpi-total-bldgs">50</div>
-            <div class="text-[11px] text-slate-400 mt-1">Footprints localized via U-Net</div>
+        <!-- Live Meteorological Radar Card -->
+        <div class="bg-slate-950/90 border border-slate-800 p-3.5 rounded-xl space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-white flex items-center gap-1.5">
+              <i data-lucide="cloud-lightning" class="w-4 h-4 text-sky-400"></i>
+              Real-Time Weather & Flood Trigger
+            </span>
+            <span id="weather-alert-badge" class="text-[10px] font-mono font-bold px-2 py-0.5 rounded border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+              NORMAL_GREEN
+            </span>
           </div>
 
-          <div class="bg-slate-900/80 border border-red-500/30 p-3 rounded-lg">
+          <div class="grid grid-cols-3 gap-2 text-center pt-1">
+            <div class="bg-slate-900/70 p-2 rounded-lg border border-slate-800/80">
+              <span class="text-[10px] text-slate-400 block">Temperature</span>
+              <span class="text-xs font-mono font-bold text-white" id="weather-temp">--°C</span>
+            </div>
+            <div class="bg-slate-900/70 p-2 rounded-lg border border-slate-800/80">
+              <span class="text-[10px] text-slate-400 block">Humidity</span>
+              <span class="text-xs font-mono font-bold text-white" id="weather-humidity">--%</span>
+            </div>
+            <div class="bg-slate-900/70 p-2 rounded-lg border border-slate-800/80">
+              <span class="text-[10px] text-slate-400 block">24h Rainfall</span>
+              <span class="text-xs font-mono font-bold text-sky-400" id="weather-rain">-- mm</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+            <span id="weather-condition-text">Fetching Open-Meteo meteorological feed...</span>
+            <button onclick="refreshLiveWeather()" class="text-indigo-400 hover:text-indigo-300 flex items-center gap-1 text-[10px] font-semibold">
+              <i data-lucide="refresh-cw" class="w-3 h-3"></i> Sync Now
+            </button>
+          </div>
+        </div>
+
+        <!-- Primary KPI Metrics Grid -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <div class="bg-slate-950/80 border border-slate-800 p-3 rounded-xl">
+            <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
+              <span>Buildings Assessed</span>
+              <i data-lucide="building-2" class="w-4 h-4 text-indigo-400"></i>
+            </div>
+            <div class="text-xl font-bold font-mono text-white" id="kpi-total-bldgs">50</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">U-Net Footprints Localized</div>
+          </div>
+
+          <div class="bg-slate-950/80 border border-red-500/20 p-3 rounded-xl">
             <div class="flex justify-between items-center text-xs text-red-300 mb-1">
               <span>Severe / Destroyed</span>
               <i data-lucide="flame" class="w-4 h-4 text-red-400"></i>
             </div>
-            <div class="text-2xl font-bold text-red-400" id="kpi-severely-damaged">23</div>
-            <div class="text-[11px] text-red-300/80 mt-1" id="kpi-damage-rate">46.0% structural impact</div>
+            <div class="text-xl font-bold font-mono text-red-400" id="kpi-severely-damaged">23</div>
+            <div class="text-[10px] text-red-300/80 mt-0.5" id="kpi-damage-rate">46.0% structural impact</div>
           </div>
 
-          <div class="bg-slate-900/80 border border-amber-500/30 p-3 rounded-lg">
+          <div class="bg-slate-950/80 border border-amber-500/20 p-3 rounded-xl">
             <div class="flex justify-between items-center text-xs text-amber-300 mb-1">
-              <span>Flagged for Review</span>
+              <span>Audit Queue</span>
               <i data-lucide="alert-circle" class="w-4 h-4 text-amber-400"></i>
             </div>
-            <div class="text-2xl font-bold text-amber-400" id="kpi-flagged">4</div>
-            <div class="text-[11px] text-amber-300/80 mt-1">Confidence &lt; 0.65 threshold</div>
+            <div class="text-xl font-bold font-mono text-amber-400" id="kpi-flagged">4</div>
+            <div class="text-[10px] text-amber-300/80 mt-0.5">Confidence &lt; 0.65 threshold</div>
           </div>
 
-          <div class="bg-slate-900/80 border border-emerald-500/30 p-3 rounded-lg">
+          <div class="bg-slate-950/80 border border-emerald-500/20 p-3 rounded-xl">
             <div class="flex justify-between items-center text-xs text-emerald-300 mb-1">
-              <span>Relocation Capacity</span>
+              <span>Hostable Capacity</span>
               <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
             </div>
-            <div class="text-2xl font-bold text-emerald-400" id="kpi-capacity">3,986</div>
-            <div class="text-[11px] text-emerald-300/80 mt-1">Persons hostable (4 eligible sites)</div>
+            <div class="text-xl font-bold font-mono text-emerald-400" id="kpi-capacity">3,986</div>
+            <div class="text-[10px] text-emerald-300/80 mt-0.5">Persons across safe sites</div>
           </div>
         </div>
 
-        <!-- Damage Breakdown Chart Bar -->
-        <div class="bg-slate-900/80 border border-slate-700/80 p-3 rounded-lg space-y-2">
-          <span class="text-xs font-semibold text-slate-300 block">Damage Class Distribution</span>
-          <div class="h-3 w-full bg-slate-700 rounded-full overflow-hidden flex">
-            <div id="bar-undamaged" style="width: 30%; background: #10B981;" title="Undamaged: 15"></div>
-            <div id="bar-minor" style="width: 24%; background: #FBBF24;" title="Minor: 12"></div>
-            <div id="bar-major" style="width: 26%; background: #F97316;" title="Major: 13"></div>
-            <div id="bar-destroyed" style="width: 20%; background: #EF4444;" title="Destroyed: 10"></div>
+        <!-- Damage Tier Segmented Meter -->
+        <div class="bg-slate-950/80 border border-slate-800 p-3.5 rounded-xl space-y-2">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold text-slate-300">Damage Classification Distribution</span>
+            <span class="text-[11px] text-slate-400 font-mono">50 Buildings</span>
+          </div>
+          <div class="h-2.5 w-full bg-slate-800 rounded-full overflow-hidden flex shadow-inner">
+            <div style="width: 30%; background: #10B981;" title="Undamaged: 15"></div>
+            <div style="width: 24%; background: #FBBF24;" title="Minor: 12"></div>
+            <div style="width: 26%; background: #F97316;" title="Major: 13"></div>
+            <div style="width: 20%; background: #EF4444;" title="Destroyed: 10"></div>
           </div>
           <div class="grid grid-cols-2 gap-2 text-xs pt-1">
-            <div class="flex items-center justify-between"><span class="flex items-center text-slate-300"><span class="legend-box" style="background: #10B981;"></span>Undamaged</span><span class="font-bold text-white" id="count-undamaged">15</span></div>
-            <div class="flex items-center justify-between"><span class="flex items-center text-slate-300"><span class="legend-box" style="background: #FBBF24;"></span>Minor Damage</span><span class="font-bold text-white" id="count-minor">12</span></div>
-            <div class="flex items-center justify-between"><span class="flex items-center text-slate-300"><span class="legend-box" style="background: #F97316;"></span>Major Damage</span><span class="font-bold text-white" id="count-major">13</span></div>
-            <div class="flex items-center justify-between"><span class="flex items-center text-slate-300"><span class="legend-box" style="background: #EF4444;"></span>Destroyed</span><span class="font-bold text-white" id="count-destroyed">10</span></div>
+            <div class="flex items-center justify-between text-slate-300">
+              <span class="flex items-center"><span class="legend-box" style="background: #10B981;"></span>Undamaged</span>
+              <span class="font-mono font-semibold text-white">15 (30%)</span>
+            </div>
+            <div class="flex items-center justify-between text-slate-300">
+              <span class="flex items-center"><span class="legend-box" style="background: #FBBF24;"></span>Minor Damage</span>
+              <span class="font-mono font-semibold text-white">12 (24%)</span>
+            </div>
+            <div class="flex items-center justify-between text-slate-300">
+              <span class="flex items-center"><span class="legend-box" style="background: #F97316;"></span>Major Damage</span>
+              <span class="font-mono font-semibold text-white">13 (26%)</span>
+            </div>
+            <div class="flex items-center justify-between text-slate-300">
+              <span class="flex items-center"><span class="legend-box" style="background: #EF4444;"></span>Destroyed</span>
+              <span class="font-mono font-semibold text-white">10 (20%)</span>
+            </div>
           </div>
         </div>
 
-        <!-- System Pipeline & Technical Summary Card -->
-        <div class="bg-slate-900/40 border border-slate-700/60 p-3 rounded-lg text-xs space-y-1.5">
-          <div class="font-semibold text-indigo-400">System Architecture & Pipeline:</div>
-          <div class="grid grid-cols-2 gap-1 text-[11px] text-slate-300">
-            <div>• Dual-Branch Siamese U-Net</div>
+        <!-- Pipeline Status Card -->
+        <div class="bg-slate-950/40 border border-slate-800 p-3 rounded-xl text-xs space-y-1.5">
+          <div class="font-bold text-indigo-400 text-[11px] uppercase tracking-wider">Engine Pipeline Configuration:</div>
+          <div class="grid grid-cols-2 gap-1.5 text-[11px] text-slate-400">
+            <div>• Dual Siamese U-Net</div>
             <div>• AHP Multi-Hazard Overlay</div>
-            <div>• TOPSIS Site Prioritization</div>
-            <div>• Human-in-the-Loop Audit</div>
-          </div>
-          <div class="text-[11px] text-slate-400 pt-1 border-t border-slate-800 flex items-center justify-between">
-            <span>Coordinate System: <span class="text-white font-mono">EPSG:4326</span></span>
-            <span class="text-emerald-400 font-medium">● Local Offline Mode</span>
+            <div>• TOPSIS Vector Distance</div>
+            <div>• Humanitarian Capacity Standard</div>
           </div>
         </div>
       </div>
@@ -229,53 +330,55 @@
       <div id="panel-damage" class="tab-panel hidden space-y-4">
         <div>
           <h2 class="text-sm font-bold text-white">Bi-Temporal Damage Segmentation</h2>
-          <p class="text-xs text-slate-400">Siamese U-Net with ResNet feature difference fusion</p>
+          <p class="text-xs text-slate-400">Shared-weight Siamese U-Net with feature-difference fusion</p>
         </div>
 
         <!-- Filter Controls -->
-        <div class="bg-slate-900/80 border border-slate-700 p-3 rounded-lg space-y-2.5">
-          <label class="text-xs font-semibold text-slate-300 block">Filter Buildings by Damage Class</label>
-          <select id="filter-damage-class" onchange="applyDamageFilters()" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-2.5 py-1.5 text-xs text-white">
-            <option value="">All Damage Classes (50)</option>
-            <option value="undamaged">Undamaged</option>
-            <option value="minor_damage">Minor Damage</option>
-            <option value="major_damage">Major Damage</option>
-            <option value="destroyed">Destroyed</option>
-          </select>
+        <div class="bg-slate-950/90 border border-slate-800 p-3.5 rounded-xl space-y-3">
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">Filter by Damage Classification</label>
+            <select id="filter-damage-class" onchange="applyDamageFilters()" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+              <option value="">All Damage Classes (50)</option>
+              <option value="undamaged">Undamaged (15)</option>
+              <option value="minor_damage">Minor Damage (12)</option>
+              <option value="major_damage">Major Damage (13)</option>
+              <option value="destroyed">Destroyed (10)</option>
+            </select>
+          </div>
 
-          <div class="pt-1">
+          <div>
             <div class="flex justify-between text-xs text-slate-300 mb-1">
-              <span>Confidence Threshold</span>
-              <span id="conf-val" class="font-bold text-indigo-400">0.00</span>
+              <span>Minimum Confidence Threshold</span>
+              <span id="conf-val" class="font-mono font-bold text-indigo-400">0.00</span>
             </div>
             <input type="range" id="filter-confidence" min="0" max="0.95" step="0.05" value="0.0" oninput="document.getElementById('conf-val').innerText = this.value; applyDamageFilters();" class="w-full accent-indigo-500">
           </div>
 
           <label class="flex items-center gap-2 cursor-pointer pt-1 text-xs text-amber-300">
-            <input type="checkbox" id="filter-flagged-only" onchange="applyDamageFilters()" class="rounded bg-slate-800 border-slate-600 text-amber-500 focus:ring-0">
-            <span>Show Flagged for Review Only</span>
+            <input type="checkbox" id="filter-flagged-only" onchange="applyDamageFilters()" class="rounded bg-slate-900 border-slate-700 text-amber-500 focus:ring-0">
+            <span>Show Low-Confidence Flags Only (&lt; 0.65)</span>
           </label>
         </div>
 
-        <!-- Selected Building Detail Inspector -->
-        <div id="building-inspector-card" class="bg-slate-900/90 border border-indigo-500/40 p-3.5 rounded-lg space-y-3">
-          <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+        <!-- Building Inspector Card -->
+        <div class="bg-slate-950/90 border border-indigo-500/30 p-4 rounded-xl space-y-3 shadow-lg">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
             <span class="text-xs font-bold text-indigo-400 uppercase tracking-wide">Building Inspector</span>
-            <span id="insp-bldg-id" class="text-xs font-mono font-bold bg-slate-800 px-2 py-0.5 rounded text-white">Select a Building</span>
+            <span id="insp-bldg-id" class="text-xs font-mono font-bold bg-slate-900 border border-slate-700 px-2 py-0.5 rounded text-white">Select a Building</span>
           </div>
 
-          <div id="insp-placeholder" class="text-xs text-slate-400 py-4 text-center">
+          <div id="insp-placeholder" class="text-xs text-slate-400 py-6 text-center leading-relaxed">
             Click on any building footprint on the map to inspect AI damage prediction, class probabilities, and trigger human review.
           </div>
 
           <div id="insp-content" class="hidden space-y-3 text-xs">
             <div class="flex justify-between items-center">
-              <span class="text-slate-400">Damage Classification:</span>
-              <span id="insp-class" class="font-bold px-2 py-0.5 rounded text-white">Destroyed</span>
+              <span class="text-slate-400">Predicted Class:</span>
+              <span id="insp-class" class="font-bold px-2 py-0.5 rounded text-white shadow-sm">Destroyed</span>
             </div>
             <div class="flex justify-between items-center">
               <span class="text-slate-400">Confidence Score:</span>
-              <span id="insp-confidence" class="font-mono font-bold text-white">0.89</span>
+              <span id="insp-confidence" class="font-mono font-bold text-white">89.0%</span>
             </div>
             <div class="flex justify-between items-center">
               <span class="text-slate-400">Footprint Area:</span>
@@ -283,31 +386,31 @@
             </div>
             <div class="flex justify-between items-center">
               <span class="text-slate-400">Review Status:</span>
-              <span id="insp-review-status" class="px-2 py-0.5 rounded font-medium">AUTO_VERIFIED</span>
+              <span id="insp-review-status" class="px-2 py-0.5 rounded font-medium text-[11px]">AUTO_VERIFIED</span>
             </div>
 
             <!-- Softmax Probability Distribution -->
             <div class="space-y-1.5 pt-2 border-t border-slate-800">
-              <span class="text-[11px] font-semibold text-slate-400 block">Class Probability Distribution:</span>
+              <span class="text-[11px] font-semibold text-slate-400 block">Class Softmax Probabilities:</span>
               <div class="space-y-1 text-[11px]">
-                <div class="flex justify-between"><span>Undamaged</span><span id="prob-0" class="font-mono">5%</span></div>
-                <div class="flex justify-between"><span>Minor Damage</span><span id="prob-1" class="font-mono">5%</span></div>
-                <div class="flex justify-between"><span>Major Damage</span><span id="prob-2" class="font-mono">10%</span></div>
-                <div class="flex justify-between"><span>Destroyed</span><span id="prob-3" class="font-mono">80%</span></div>
+                <div class="flex justify-between text-slate-300"><span>Undamaged</span><span id="prob-0" class="font-mono font-medium">5%</span></div>
+                <div class="flex justify-between text-slate-300"><span>Minor Damage</span><span id="prob-1" class="font-mono font-medium">5%</span></div>
+                <div class="flex justify-between text-slate-300"><span>Major Damage</span><span id="prob-2" class="font-mono font-medium">10%</span></div>
+                <div class="flex justify-between text-slate-300"><span>Destroyed</span><span id="prob-3" class="font-mono font-medium">80%</span></div>
               </div>
             </div>
 
             <!-- Human-in-the-Loop Override Action -->
-            <div class="pt-2 border-t border-slate-800 space-y-2">
-              <span class="text-[11px] font-semibold text-amber-400 block">Human Review Override:</span>
+            <div class="pt-2.5 border-t border-slate-800 space-y-2">
+              <span class="text-[11px] font-semibold text-amber-400 block">Human-in-the-Loop Verification:</span>
               <div class="flex gap-2">
-                <select id="review-override-select" class="bg-slate-800 border border-slate-600 rounded text-xs px-2 py-1 text-white flex-1">
+                <select id="review-override-select" class="bg-slate-900 border border-slate-700 rounded-lg text-xs px-2.5 py-1.5 text-white flex-1 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                   <option value="undamaged">Undamaged</option>
                   <option value="minor_damage">Minor Damage</option>
                   <option value="major_damage">Major Damage</option>
                   <option value="destroyed">Destroyed</option>
                 </select>
-                <button onclick="submitHumanReview()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded text-xs font-medium">
+                <button onclick="submitHumanReview()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-md transition-all">
                   Confirm
                 </button>
               </div>
@@ -316,61 +419,72 @@
         </div>
       </div>
 
-      <!-- ================= TAB 3: HAZARD SCREENING (AHP) ================= -->
+      <!-- ================= TAB 3: HAZARD SCREENING (AHP + WEATHER) ================= -->
       <div id="panel-hazard" class="tab-panel hidden space-y-4">
         <div>
-          <h2 class="text-sm font-bold text-white">Multi-Hazard Screening & Red Zones</h2>
+          <h2 class="text-sm font-bold text-white">Multi-Hazard Red-Zone Screening</h2>
           <p class="text-xs text-slate-400">Analytic Hierarchy Process (AHP) Weighted Overlay</p>
         </div>
 
-        <!-- AHP Weights Configuration -->
-        <div class="bg-slate-900/80 border border-slate-700 p-3 rounded-lg space-y-3">
+        <!-- Mode Indicator Alert -->
+        <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center justify-between text-xs">
+          <div>
+            <span class="font-semibold text-white block" id="ahp-mode-title">Satellite Baseline Mode</span>
+            <span class="text-[10px] text-slate-400" id="ahp-mode-subtitle">Using static terrain & damage factor weights</span>
+          </div>
+          <button onclick="toggleRiskModeQuick()" class="bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-600 hover:text-white px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all">
+            Switch Mode
+          </button>
+        </div>
+
+        <!-- AHP Weights Sliders -->
+        <div class="bg-slate-950/90 border border-slate-800 p-3.5 rounded-xl space-y-3">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-slate-300">Factor Weights (\(\sum w_i = 1.0\))</span>
-            <span class="text-[11px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded font-mono">
-              CR = 0.042 (&lt;0.10 OK)
+            <span class="text-xs font-bold text-slate-300">Factor Weights (\(\sum w_i = 1.0\))</span>
+            <span class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-mono font-semibold">
+              CR = 0.042 (&lt; 0.10 Consistent)
             </span>
           </div>
 
-          <div class="space-y-2 text-xs">
+          <div class="space-y-2.5 text-xs">
             <div>
-              <div class="flex justify-between text-slate-300 mb-0.5"><span>Observed Damage Density</span><span id="w-damage-val" class="font-mono">0.35</span></div>
+              <div class="flex justify-between text-slate-300 mb-1"><span>Structural Damage Density</span><span id="w-damage-val" class="font-mono font-semibold">0.35</span></div>
               <input type="range" id="slider-damage" min="0.1" max="0.6" step="0.05" value="0.35" oninput="updateAHP()" class="w-full accent-indigo-500">
             </div>
             <div>
-              <div class="flex justify-between text-slate-300 mb-0.5"><span>Flood / Hydro Exposure</span><span id="w-flood-val" class="font-mono">0.25</span></div>
+              <div class="flex justify-between text-slate-300 mb-1"><span>Hydrological / Flood Runoff</span><span id="w-flood-val" class="font-mono font-semibold">0.25</span></div>
               <input type="range" id="slider-flood" min="0.1" max="0.5" step="0.05" value="0.25" oninput="updateAHP()" class="w-full accent-indigo-500">
             </div>
             <div>
-              <div class="flex justify-between text-slate-300 mb-0.5"><span>Slope / Landslide Risk</span><span id="w-slope-val" class="font-mono">0.18</span></div>
+              <div class="flex justify-between text-slate-300 mb-1"><span>Terrain Slope & Landslide</span><span id="w-slope-val" class="font-mono font-semibold">0.18</span></div>
               <input type="range" id="slider-slope" min="0.05" max="0.4" step="0.05" value="0.18" oninput="updateAHP()" class="w-full accent-indigo-500">
             </div>
             <div>
-              <div class="flex justify-between text-slate-300 mb-0.5"><span>Land Cover Vulnerability</span><span id="w-land-val" class="font-mono">0.12</span></div>
+              <div class="flex justify-between text-slate-300 mb-1"><span>Land Cover Vulnerability</span><span id="w-land-val" class="font-mono font-semibold">0.12</span></div>
               <input type="range" id="slider-land" min="0.05" max="0.3" step="0.05" value="0.12" oninput="updateAHP()" class="w-full accent-indigo-500">
             </div>
             <div>
-              <div class="flex justify-between text-slate-300 mb-0.5"><span>Population Exposure</span><span id="w-pop-val" class="font-mono">0.10</span></div>
+              <div class="flex justify-between text-slate-300 mb-1"><span>Population Exposure</span><span id="w-pop-val" class="font-mono font-semibold">0.10</span></div>
               <input type="range" id="slider-pop" min="0.05" max="0.3" step="0.05" value="0.10" oninput="updateAHP()" class="w-full accent-indigo-500">
             </div>
           </div>
         </div>
 
-        <!-- Screening Zones Card -->
-        <div class="bg-slate-900/80 border border-slate-700 p-3 rounded-lg space-y-2">
-          <span class="text-xs font-semibold text-slate-300 block">Delineated Hazard Screening Zones</span>
+        <!-- Delineated Zones Cards -->
+        <div class="bg-slate-950/90 border border-slate-800 p-3.5 rounded-xl space-y-2">
+          <span class="text-xs font-bold text-slate-300 block">Delineated Hazard Screening Zones</span>
           <div class="space-y-2 text-xs">
-            <div class="border-l-4 border-red-500 pl-2 py-1 bg-red-950/20 rounded-r">
-              <div class="flex justify-between font-bold text-red-400"><span>Red Zone (High Hazard)</span><span>Score: 0.842</span></div>
-              <p class="text-[11px] text-slate-400">River Runout & Flash Flood Sector • 34.2 ha • 23 buildings</p>
+            <div class="border-l-4 border-red-500 pl-3 py-1.5 bg-red-950/20 rounded-r-lg">
+              <div class="flex justify-between font-bold text-red-400"><span>Red Zone (High Hazard)</span><span class="font-mono" id="score-red">0.842</span></div>
+              <p class="text-[11px] text-slate-400 mt-0.5">River Runout & Inundation Sector • 34.2 ha • 23 buildings</p>
             </div>
-            <div class="border-l-4 border-amber-500 pl-2 py-1 bg-amber-950/20 rounded-r">
-              <div class="flex justify-between font-bold text-amber-400"><span>Amber Zone (Buffer Caution)</span><span>Score: 0.528</span></div>
-              <p class="text-[11px] text-slate-400">Mid-Slope Hydrological Corridor • 41.8 ha • 12 buildings</p>
+            <div class="border-l-4 border-amber-500 pl-3 py-1.5 bg-amber-950/20 rounded-r-lg">
+              <div class="flex justify-between font-bold text-amber-400"><span>Amber Zone (Buffer Caution)</span><span class="font-mono" id="score-amber">0.528</span></div>
+              <p class="text-[11px] text-slate-400 mt-0.5">Mid-Slope Hydrological Corridor • 41.8 ha • 12 buildings</p>
             </div>
-            <div class="border-l-4 border-emerald-500 pl-2 py-1 bg-emerald-950/20 rounded-r">
-              <div class="flex justify-between font-bold text-emerald-400"><span>Green Zone (Stable Baseline)</span><span>Score: 0.184</span></div>
-              <p class="text-[11px] text-slate-400">Stable Upland Bedrock Ridge • 58.5 ha • 15 buildings</p>
+            <div class="border-l-4 border-emerald-500 pl-3 py-1.5 bg-emerald-950/20 rounded-r-lg">
+              <div class="flex justify-between font-bold text-emerald-400"><span>Green Zone (Stable Baseline)</span><span class="font-mono" id="score-green">0.184</span></div>
+              <p class="text-[11px] text-slate-400 mt-0.5">Stable Upland Bedrock Ridge • 58.5 ha • 15 buildings</p>
             </div>
           </div>
         </div>
@@ -383,54 +497,54 @@
           <p class="text-xs text-slate-400">Multi-criteria ranking with hard constraints & capacity</p>
         </div>
 
-        <!-- Planning Parameters -->
-        <div class="bg-slate-900/80 border border-slate-700 p-3 rounded-lg space-y-2 text-xs">
-          <span class="font-semibold text-slate-300 block">Capacity & Constraint Rules</span>
+        <!-- Planning Rules -->
+        <div class="bg-slate-950/90 border border-slate-800 p-3 rounded-xl text-xs space-y-2">
+          <span class="font-bold text-slate-300 block">Exclusion & Capacity Parameters</span>
           <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-400">
-            <div>Area / Person: <span class="text-white font-mono">30 m²</span></div>
-            <div>Usable Fraction: <span class="text-white font-mono">65%</span></div>
-            <div>Max Slope: <span class="text-white font-mono">&le; 16°</span></div>
-            <div>Hazard Buffer: <span class="text-white font-mono">&ge; 250 m</span></div>
+            <div>Sphere Area: <span class="text-white font-mono font-medium">30 m² / person</span></div>
+            <div>Usable Net Fraction: <span class="text-white font-mono font-medium">65%</span></div>
+            <div>Slope Limit: <span class="text-white font-mono font-medium">&le; 16.0°</span></div>
+            <div>Hazard Buffer: <span class="text-white font-mono font-medium">&ge; 250 m</span></div>
           </div>
         </div>
 
-        <!-- Ranked Sites List -->
-        <div class="space-y-2" id="relocation-site-cards">
-          <!-- Dynamically populated -->
+        <!-- Candidate Sites Dynamic Container -->
+        <div class="space-y-2.5" id="relocation-site-cards">
+          <!-- Populated dynamically via JS -->
         </div>
       </div>
 
       <!-- ================= TAB 5: REVIEW & REPORTS ================= -->
       <div id="panel-review" class="tab-panel hidden space-y-4">
         <div>
-          <h2 class="text-sm font-bold text-white">Human-in-the-Loop Review & Export</h2>
-          <p class="text-xs text-slate-400">Validate uncertain predictions and export deliverables</p>
+          <h2 class="text-sm font-bold text-white">Human-in-the-Loop Audit & Export</h2>
+          <p class="text-xs text-slate-400">Audit uncertain predictions and export deliverables</p>
         </div>
 
-        <!-- Flagged Predictions Counter -->
-        <div class="bg-slate-900/80 border border-slate-700 p-3 rounded-lg space-y-2 text-xs">
+        <!-- Flagged Audit List -->
+        <div class="bg-slate-950/90 border border-slate-800 p-3.5 rounded-xl space-y-2.5 text-xs">
           <div class="flex justify-between items-center">
-            <span class="font-semibold text-slate-300">Uncertain Predictions Needing Audit</span>
+            <span class="font-bold text-slate-300">Predictions Requiring Analyst Review</span>
             <span class="bg-amber-500/20 text-amber-400 font-mono px-2 py-0.5 rounded text-xs font-bold" id="rev-flag-count">4</span>
           </div>
-          <div id="flagged-bldg-list" class="space-y-1.5 max-h-48 overflow-y-auto custom-scroll pt-1">
+          <div id="flagged-bldg-list" class="space-y-1.5 max-h-52 overflow-y-auto custom-scroll pt-1">
             <!-- Populated via JS -->
           </div>
         </div>
 
         <!-- Export Actions -->
-        <div class="bg-slate-900/80 border border-slate-700 p-3 rounded-lg space-y-2 text-xs">
-          <span class="font-semibold text-slate-300 block">Generate Deliverables</span>
+        <div class="bg-slate-950/90 border border-slate-800 p-3.5 rounded-xl space-y-2 text-xs">
+          <span class="font-bold text-slate-300 block mb-1">Export Planning Deliverables</span>
           <div class="flex flex-col gap-2">
-            <button onclick="downloadCSVReport()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white py-2 px-3 rounded-lg flex items-center justify-center gap-2 font-medium">
+            <button onclick="downloadCSVReport()" class="w-full bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-white py-2 px-3 rounded-lg flex items-center justify-center gap-2 font-medium transition-all shadow-sm">
               <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
               Export Relocation Rankings (CSV)
             </button>
-            <button onclick="downloadGeoJSON()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white py-2 px-3 rounded-lg flex items-center justify-center gap-2 font-medium">
-              <i data-lucide="map-pin" class="w-4 h-4 text-indigo-400"></i>
-              Export Building Damage Features (GeoJSON)
+            <button onclick="downloadGeoJSON()" class="w-full bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-white py-2 px-3 rounded-lg flex items-center justify-center gap-2 font-medium transition-all shadow-sm">
+              <i data-lucide="map" class="w-4 h-4 text-indigo-400"></i>
+              Export Building Footprints (GeoJSON)
             </button>
-            <button onclick="downloadSummaryJSON()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white py-2 px-3 rounded-lg flex items-center justify-center gap-2 font-medium">
+            <button onclick="downloadSummaryJSON()" class="w-full bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-white py-2 px-3 rounded-lg flex items-center justify-center gap-2 font-medium transition-all shadow-sm">
               <i data-lucide="file-text" class="w-4 h-4 text-amber-400"></i>
               Export Executive Decision Report (JSON)
             </button>
@@ -439,9 +553,9 @@
       </div>
 
     </div>
-  </div>
+  </main>
 
-  <!-- Dashboard JavaScript Logic -->
+  <!-- Application Logic -->
   <script>
     const API_BASE = "http://127.0.0.1:8000/api";
     const PROJECT_ID = "proj-karnataka-wghats-2026";
@@ -450,16 +564,17 @@
     let buildingsGeoJsonLayer;
     let hazardGeoJsonLayer;
     let relocationGeoJsonLayer;
-    
-    let allBuildings = [];
-    let allHazardZones = [];
-    let allRelocationSites = [];
-    let selectedBuilding = null;
-
     let basemapLayers = {};
     let currentBasemap = null;
 
-    // Initialize Map with 100% Free, Keyless Satellite Basemaps
+    let allBuildings = [];
+    let allHazardZones = [];
+    let allRelocationSites = [];
+    let liveWeatherData = null;
+    let currentRiskMode = "baseline"; // "baseline" or "weather"
+    let selectedBuilding = null;
+
+    // Initialize Map with 100% Free Satellite Imagery
     function initMap() {
       map = L.map('map', {
         center: [12.3375, 75.8062],
@@ -469,7 +584,7 @@
 
       L.control.zoom({ position: 'topleft' }).addTo(map);
 
-      // Define Free Basemaps (No API Keys Required!)
+      // Define Free Basemaps
       basemapLayers = {
         satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
           attribution: 'Tiles &copy; Esri &mdash; Maxar, Earthstar Geographics',
@@ -480,35 +595,33 @@
           maxZoom: 19
         }),
         topo: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
-          attribution: 'Tiles &copy; Esri &mdash; National Geographic, DeLorme, NAVTEQ',
+          attribution: 'Tiles &copy; Esri',
           maxZoom: 19
         })
       };
 
-      // Default to Satellite Imagery
       currentBasemap = basemapLayers.satellite;
       currentBasemap.addTo(map);
 
-      loadData();
+      loadInitialData();
+      refreshLiveWeather();
     }
 
     function switchBaseMap(type) {
-      if (currentBasemap) {
-        map.removeLayer(currentBasemap);
-      }
+      if (currentBasemap) map.removeLayer(currentBasemap);
       currentBasemap = basemapLayers[type] || basemapLayers.satellite;
       currentBasemap.addTo(map);
-      // Ensure overlays stay on top
+
       if (hazardGeoJsonLayer) hazardGeoJsonLayer.bringToFront();
       if (relocationGeoJsonLayer) relocationGeoJsonLayer.bringToFront();
       if (buildingsGeoJsonLayer) buildingsGeoJsonLayer.bringToFront();
     }
 
-    async function loadData() {
+    async function loadInitialData() {
       try {
         const [bldRes, hazRes, relRes] = await Promise.all([
           fetch(`${API_BASE}/projects/${PROJECT_ID}/buildings`),
-          fetch(`${API_BASE}/projects/${PROJECT_ID}/risk-zones`),
+          fetch(`${API_BASE}/projects/${PROJECT_ID}/risk-zones?use_live_weather=${currentRiskMode === 'weather'}`),
           fetch(`${API_BASE}/projects/${PROJECT_ID}/relocation-sites`)
         ]);
 
@@ -524,23 +637,98 @@
         renderRelocationSites();
         renderBuildings(allBuildings);
 
-        // Auto-fit bounds to all data so everything is in view
         if (buildingsGeoJsonLayer && buildingsGeoJsonLayer.getBounds().isValid()) {
           map.fitBounds(buildingsGeoJsonLayer.getBounds(), { padding: [50, 50] });
         }
 
         updateRelocationCards();
         updateFlaggedList();
-
       } catch (err) {
-        console.warn("Could not connect to live API, loading static fallback:", err);
+        console.warn("API Error, please ensure backend is running:", err);
       }
     }
 
-    function renderBuildings(features) {
-      if (buildingsGeoJsonLayer) {
-        map.removeLayer(buildingsGeoJsonLayer);
+    async function refreshLiveWeather() {
+      try {
+        const res = await fetch(`${API_BASE}/projects/${PROJECT_ID}/weather`);
+        if (!res.ok) return;
+        liveWeatherData = await res.json();
+
+        // Update Top Navigation Bar
+        document.getElementById('top-temp').innerText = `${liveWeatherData.temperature_c.toFixed(1)}°C`;
+        document.getElementById('top-rain-summary').innerText = `${liveWeatherData.cumulative_24h_rainfall_mm}mm rain (24h)`;
+
+        // Update Overview Weather Card
+        document.getElementById('weather-temp').innerText = `${liveWeatherData.temperature_c.toFixed(1)}°C`;
+        document.getElementById('weather-humidity').innerText = `${liveWeatherData.relative_humidity_pct}%`;
+        document.getElementById('weather-rain').innerText = `${liveWeatherData.cumulative_24h_rainfall_mm} mm`;
+        document.getElementById('weather-condition-text').innerText = `${liveWeatherData.weather_description} (Wind: ${liveWeatherData.wind_speed_kmh} km/h)`;
+
+        const badge = document.getElementById('weather-alert-badge');
+        badge.innerText = liveWeatherData.alert_level;
+        badge.style.color = liveWeatherData.alert_color;
+        badge.style.borderColor = liveWeatherData.alert_color + "40";
+        badge.style.backgroundColor = liveWeatherData.alert_color + "15";
+
+      } catch (err) {
+        console.warn("Weather sync error:", err);
       }
+    }
+
+    async function setRiskMode(mode) {
+      currentRiskMode = mode;
+      const isWeather = mode === 'weather';
+
+      // Update Header Button Highlights
+      document.getElementById('mode-btn-baseline').className = !isWeather
+        ? "px-2.5 py-1 rounded-lg font-medium transition-all bg-indigo-600 text-white shadow"
+        : "px-2.5 py-1 rounded-lg font-medium transition-all text-slate-400 hover:text-white";
+
+      document.getElementById('mode-btn-weather').className = isWeather
+        ? "px-2.5 py-1 rounded-lg font-medium transition-all bg-indigo-600 text-white shadow"
+        : "px-2.5 py-1 rounded-lg font-medium transition-all text-slate-400 hover:text-white";
+
+      // Update UI Badges
+      const badge = document.getElementById('active-mode-badge');
+      const ahpTitle = document.getElementById('ahp-mode-title');
+      const ahpSub = document.getElementById('ahp-mode-subtitle');
+
+      if (isWeather) {
+        badge.innerText = "⚡ Live Weather Inundation Mode";
+        badge.className = "text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20";
+        if (ahpTitle) ahpTitle.innerText = "⚡ Dynamic Weather Inundation Overlay";
+        if (ahpSub) ahpSub.innerText = "Hydrological exposure dynamically blended with live 24h precipitation";
+      } else {
+        badge.innerText = "🛰️ Satellite Baseline Mode";
+        badge.className = "text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20";
+        if (ahpTitle) ahpTitle.innerText = "🛰️ Satellite Baseline Mode";
+        if (ahpSub) ahpSub.innerText = "Using static terrain slope and structural damage density";
+      }
+
+      // Re-fetch Hazard Screening Zones with live weather toggle
+      try {
+        const hazRes = await fetch(`${API_BASE}/projects/${PROJECT_ID}/risk-zones?use_live_weather=${isWeather}`);
+        const hazData = await hazRes.json();
+        allHazardZones = hazData.features || [];
+        renderHazardZones();
+
+        // Update scores in UI
+        if (allHazardZones.length >= 3) {
+          document.getElementById('score-red').innerText = allHazardZones[0].properties.composite_risk_score;
+          document.getElementById('score-amber').innerText = allHazardZones[1].properties.composite_risk_score;
+          document.getElementById('score-green').innerText = allHazardZones[2].properties.composite_risk_score;
+        }
+      } catch (err) {
+        console.warn("Failed to switch hazard mode:", err);
+      }
+    }
+
+    function toggleRiskModeQuick() {
+      setRiskMode(currentRiskMode === 'baseline' ? 'weather' : 'baseline');
+    }
+
+    function renderBuildings(features) {
+      if (buildingsGeoJsonLayer) map.removeLayer(buildingsGeoJsonLayer);
 
       buildingsGeoJsonLayer = L.geoJSON({ type: "FeatureCollection", features: features }, {
         style: function (feature) {
@@ -577,11 +765,12 @@
             weight: 2,
             color: color,
             dashArray: '4, 4',
-            fillOpacity: 0.25
+            fillOpacity: 0.28
           };
         },
         onEachFeature: function (feature, layer) {
-          layer.bindTooltip(`<b>${feature.properties.zone_name}</b><br>Composite Risk: ${feature.properties.composite_risk_score}`, { sticky: true });
+          const p = feature.properties;
+          layer.bindTooltip(`<b>${p.zone_name}</b><br>Score: ${p.composite_risk_score} (${p.zone_class})`, { sticky: true });
         }
       }).addTo(map);
     }
@@ -601,7 +790,9 @@
         },
         onEachFeature: function (feature, layer) {
           const p = feature.properties;
-          const statusText = p.is_eligible ? `Rank #${p.rank} (TOPSIS: ${p.topsis_score})<br>Capacity: ${p.estimated_capacity_persons} people` : `EXCLUDED: ${p.exclusion_reasons.join(', ')}`;
+          const statusText = p.is_eligible 
+            ? `Rank #${p.rank} (TOPSIS: ${p.topsis_score})<br>Hostable: ${p.estimated_capacity_persons} people` 
+            : `EXCLUDED: ${p.exclusion_reasons.join(', ')}`;
           layer.bindTooltip(`<b>${p.site_name}</b><br>${statusText}`, { sticky: true });
         }
       }).addTo(map);
@@ -613,14 +804,16 @@
 
       const p = feat.properties;
       document.getElementById('insp-bldg-id').innerText = p.building_id;
-      document.getElementById('insp-class').innerText = p.damage_class.toUpperCase();
+      document.getElementById('insp-class').innerText = p.damage_class.toUpperCase().replace('_', ' ');
       document.getElementById('insp-class').style.backgroundColor = p.damage_color;
       document.getElementById('insp-confidence').innerText = (p.confidence * 100).toFixed(1) + "%";
       document.getElementById('insp-area').innerText = p.area_sqm + " m²";
       
       const revElem = document.getElementById('insp-review-status');
       revElem.innerText = p.review_status;
-      revElem.className = p.needs_review ? "px-2 py-0.5 rounded font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30" : "px-2 py-0.5 rounded font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+      revElem.className = p.needs_review 
+        ? "px-2 py-0.5 rounded font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30" 
+        : "px-2 py-0.5 rounded font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
 
       const probs = p.class_probabilities || {};
       document.getElementById('prob-0').innerText = ((probs.undamaged || 0) * 100).toFixed(1) + "%";
@@ -629,7 +822,6 @@
       document.getElementById('prob-3').innerText = ((probs.destroyed || 0) * 100).toFixed(1) + "%";
 
       document.getElementById('review-override-select').value = p.damage_class;
-
       document.getElementById('insp-placeholder').classList.add('hidden');
       document.getElementById('insp-content').classList.remove('hidden');
     }
@@ -651,15 +843,13 @@
 
         if (res.ok) {
           const data = await res.json();
-          // Update local building
           selectedBuilding.properties = data.building.properties;
           inspectBuilding(selectedBuilding);
           renderBuildings(allBuildings);
           updateFlaggedList();
-          alert(`Building ${bldgId} verified and updated to ${newClass}!`);
         }
       } catch (err) {
-        alert("Verification saved locally.");
+        console.warn("Saved locally.");
       }
     }
 
@@ -687,25 +877,25 @@
         const p = s.properties;
         const card = document.createElement('div');
         card.className = p.is_eligible 
-          ? "bg-slate-900/80 border border-indigo-500/30 p-3 rounded-lg space-y-2 cursor-pointer hover:border-indigo-400 transition"
-          : "bg-slate-900/50 border border-slate-700/60 p-3 rounded-lg space-y-1.5 opacity-60";
+          ? "bg-slate-950/90 border border-indigo-500/30 p-3.5 rounded-xl space-y-2 cursor-pointer hover:border-indigo-400 transition-all shadow-sm"
+          : "bg-slate-950/50 border border-slate-800 p-3.5 rounded-xl space-y-1.5 opacity-60";
 
         if (p.is_eligible) {
           card.innerHTML = `
             <div class="flex justify-between items-center">
-              <span class="text-xs font-bold text-white flex items-center gap-1.5">
-                <span class="bg-indigo-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px]">#${p.rank}</span>
+              <span class="text-xs font-bold text-white flex items-center gap-2">
+                <span class="bg-indigo-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono">#${p.rank}</span>
                 ${p.site_name}
               </span>
               <span class="text-xs font-mono font-bold text-emerald-400">${(p.topsis_score * 100).toFixed(1)} pts</span>
             </div>
             <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-300">
-              <div>Capacity: <b class="text-white">${p.estimated_capacity_persons.toLocaleString()} persons</b></div>
-              <div>Net Area: <b class="text-white">${p.usable_area_ha} ha</b></div>
-              <div>Terrain Slope: <b class="text-white">${p.terrain_slope_deg}°</b></div>
-              <div>Road Distance: <b class="text-white">${p.distance_to_road_km} km</b></div>
+              <div>Capacity: <b class="text-white font-mono">${p.estimated_capacity_persons.toLocaleString()}</b></div>
+              <div>Net Area: <b class="text-white font-mono">${p.usable_area_ha} ha</b></div>
+              <div>Slope: <b class="text-white font-mono">${p.terrain_slope_deg}°</b></div>
+              <div>Road Distance: <b class="text-white font-mono">${p.distance_to_road_km} km</b></div>
             </div>
-            <div class="text-[10px] bg-indigo-950/40 text-indigo-300 px-2 py-0.5 rounded border border-indigo-800/40 font-medium">
+            <div class="text-[10px] bg-indigo-950/40 text-indigo-300 px-2.5 py-1 rounded-md border border-indigo-800/40 font-medium">
               ${p.recommendation_category}
             </div>
           `;
@@ -713,9 +903,9 @@
           card.innerHTML = `
             <div class="flex justify-between items-center text-xs font-semibold text-slate-400">
               <span>${p.site_name}</span>
-              <span class="text-red-400 text-[10px] bg-red-950/40 px-1.5 py-0.5 rounded border border-red-800/40">EXCLUDED</span>
+              <span class="text-red-400 text-[10px] bg-red-950/40 px-2 py-0.5 rounded border border-red-800/40 font-mono">EXCLUDED</span>
             </div>
-            <p class="text-[10px] text-red-300/80">Violation: ${p.exclusion_reasons.join(', ')}</p>
+            <p class="text-[10px] text-red-300/80">Constraint: ${p.exclusion_reasons.join(', ')}</p>
           `;
         }
 
@@ -730,22 +920,22 @@
       list.innerHTML = "";
 
       if (flagged.length === 0) {
-        list.innerHTML = `<div class="text-xs text-emerald-400 py-2">✓ All building predictions verified!</div>`;
+        list.innerHTML = `<div class="text-xs text-emerald-400 py-3 text-center">✓ All building predictions audited and verified!</div>`;
         return;
       }
 
       flagged.forEach(b => {
         const p = b.properties;
         const item = document.createElement('div');
-        item.className = "flex justify-between items-center bg-slate-800/80 p-2 rounded border border-amber-500/30 text-xs";
+        item.className = "flex justify-between items-center bg-slate-900 p-2.5 rounded-lg border border-amber-500/20 text-xs";
         item.innerHTML = `
           <div>
-            <span class="font-bold text-white">${p.building_id}</span>
+            <span class="font-bold font-mono text-white">${p.building_id}</span>
             <span class="text-slate-400 ml-1.5">(${p.damage_class})</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-amber-400 font-mono text-[11px]">${(p.confidence * 100).toFixed(0)}% conf</span>
-            <button onclick='inspectBuilding(${JSON.stringify(b)})' class="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] px-2 py-0.5 rounded">Inspect</button>
+            <span class="text-amber-400 font-mono text-[11px]">${(p.confidence * 100).toFixed(0)}%</span>
+            <button onclick='inspectBuilding(${JSON.stringify(b)})' class="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-semibold px-2 py-1 rounded">Inspect</button>
           </div>
         `;
         list.appendChild(item);
@@ -784,13 +974,13 @@
 
     function switchTab(tabId) {
       document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.className = "tab-btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800";
+        btn.className = "tab-btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all";
       });
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
 
       const activeBtn = document.getElementById(`tab-tabId`.replace('tabId', tabId));
       if (activeBtn) {
-        activeBtn.className = "tab-btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 bg-indigo-600 text-white shadow";
+        activeBtn.className = "tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 bg-indigo-600 text-white shadow-md transition-all";
       }
       document.getElementById(`panel-${tabId}`).classList.remove('hidden');
     }
@@ -812,7 +1002,6 @@
       window.open(`${API_BASE}/projects/${PROJECT_ID}/reports/json`, '_blank');
     }
 
-    // Startup
     window.addEventListener('DOMContentLoaded', () => {
       initMap();
       lucide.createIcons();
@@ -820,4 +1009,3 @@
   </script>
 </body>
 </html>
-
