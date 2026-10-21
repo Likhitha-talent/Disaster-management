@@ -93,20 +93,31 @@
       <div id="map"></div>
       
       <!-- Map Layer Quick Floating Toolbar -->
-      <div class="absolute top-4 right-4 z-[500] bg-slate-900/90 backdrop-blur border border-slate-700 p-2 rounded-lg text-xs shadow-xl flex flex-col gap-1.5">
-        <span class="font-semibold text-slate-300 text-[11px] uppercase tracking-wider mb-0.5">Map Overlays</span>
-        <label class="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
-          <input type="checkbox" id="toggle-buildings" checked onchange="toggleLayer('buildings')" class="rounded bg-slate-800 border-slate-600 text-indigo-500 focus:ring-0">
-          <span>Building Footprints</span>
-        </label>
-        <label class="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
-          <input type="checkbox" id="toggle-hazards" checked onchange="toggleLayer('hazards')" class="rounded bg-slate-800 border-slate-600 text-indigo-500 focus:ring-0">
-          <span>Hazard Screening Zones</span>
-        </label>
-        <label class="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
-          <input type="checkbox" id="toggle-relocation" checked onchange="toggleLayer('relocation')" class="rounded bg-slate-800 border-slate-600 text-indigo-500 focus:ring-0">
-          <span>Relocation Candidate Sites</span>
-        </label>
+      <div class="absolute top-4 right-4 z-[500] bg-slate-900/90 backdrop-blur border border-slate-700 p-2.5 rounded-lg text-xs shadow-xl flex flex-col gap-2">
+        <div>
+          <span class="font-semibold text-slate-300 text-[11px] uppercase tracking-wider block mb-1">Base Map</span>
+          <select id="basemap-select" onchange="switchBaseMap(this.value)" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-xs text-white">
+            <option value="satellite" selected>🛰️ Satellite (Esri Imagery)</option>
+            <option value="osm">🗺️ Street Map (OpenStreetMap)</option>
+            <option value="topo">⛰️ Topographic (Esri Topo)</option>
+          </select>
+        </div>
+
+        <div class="border-t border-slate-800 pt-1.5 flex flex-col gap-1.5">
+          <span class="font-semibold text-slate-300 text-[11px] uppercase tracking-wider mb-0.5">Overlays</span>
+          <label class="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
+            <input type="checkbox" id="toggle-buildings" checked onchange="toggleLayer('buildings')" class="rounded bg-slate-800 border-slate-600 text-indigo-500 focus:ring-0">
+            <span>Building Footprints</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
+            <input type="checkbox" id="toggle-hazards" checked onchange="toggleLayer('hazards')" class="rounded bg-slate-800 border-slate-600 text-indigo-500 focus:ring-0">
+            <span>Hazard Screening Zones</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
+            <input type="checkbox" id="toggle-relocation" checked onchange="toggleLayer('relocation')" class="rounded bg-slate-800 border-slate-600 text-indigo-500 focus:ring-0">
+            <span>Relocation Candidate Sites</span>
+          </label>
+        </div>
       </div>
 
       <!-- Map Legend -->
@@ -444,7 +455,10 @@
     let allRelocationSites = [];
     let selectedBuilding = null;
 
-    // Initialize Map
+    let basemapLayers = {};
+    let currentBasemap = null;
+
+    // Initialize Map with 100% Free, Keyless Satellite Basemaps
     function initMap() {
       map = L.map('map', {
         center: [12.3375, 75.8062],
@@ -454,13 +468,39 @@
 
       L.control.zoom({ position: 'topleft' }).addTo(map);
 
-      // CartoDB Dark Matter / Voyager Base Layer
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://carto.com/">CARTO</a>, OpenStreetMap contributors',
-        maxZoom: 19
-      }).addTo(map);
+      // Define Free Basemaps (No API Keys Required!)
+      basemapLayers = {
+        satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+          attribution: 'Tiles &copy; Esri &mdash; Maxar, Earthstar Geographics',
+          maxZoom: 19
+        }),
+        osm: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          maxZoom: 19
+        }),
+        topo: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+          attribution: 'Tiles &copy; Esri &mdash; National Geographic, DeLorme, NAVTEQ',
+          maxZoom: 19
+        })
+      };
+
+      // Default to Satellite Imagery
+      currentBasemap = basemapLayers.satellite;
+      currentBasemap.addTo(map);
 
       loadData();
+    }
+
+    function switchBaseMap(type) {
+      if (currentBasemap) {
+        map.removeLayer(currentBasemap);
+      }
+      currentBasemap = basemapLayers[type] || basemapLayers.satellite;
+      currentBasemap.addTo(map);
+      // Ensure overlays stay on top
+      if (hazardGeoJsonLayer) hazardGeoJsonLayer.bringToFront();
+      if (relocationGeoJsonLayer) relocationGeoJsonLayer.bringToFront();
+      if (buildingsGeoJsonLayer) buildingsGeoJsonLayer.bringToFront();
     }
 
     async function loadData() {
@@ -482,6 +522,12 @@
         renderHazardZones();
         renderRelocationSites();
         renderBuildings(allBuildings);
+
+        // Auto-fit bounds to all data so everything is in view
+        if (buildingsGeoJsonLayer && buildingsGeoJsonLayer.getBounds().isValid()) {
+          map.fitBounds(buildingsGeoJsonLayer.getBounds(), { padding: [50, 50] });
+        }
+
         updateRelocationCards();
         updateFlaggedList();
 

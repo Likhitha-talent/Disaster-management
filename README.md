@@ -73,3 +73,4 @@ Navigate to `http://127.0.0.1:8000`:
 - **[System Architecture](docs/ARCHITECTURE.md):** End-to-end pipeline and software design.
 - **[AHP & TOPSIS Methodology](docs/AHP_TOPSIS_METHODOLOGY.md):** Mathematical formulation, formulas, and proofs.
 - **[Data Management Catalogue](docs/DATA_CATALOGUE.md):** Satellite data, DEM, and land cover references.
+

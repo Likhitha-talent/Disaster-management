@@ -92,3 +92,4 @@ Let $m$ be the number of eligible sites and $n$ be the number of criteria:
    - $C_i^* \ge 0.70$: Immediate Priority (Phase 1 Rehabilitation)
    - $0.45 \le C_i^* < 0.70$: Short-Term Priority (Phase 2)
    - $C_i^* < 0.45$: Medium-Term Contingency (Phase 3)
+

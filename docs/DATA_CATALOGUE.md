@@ -18,3 +18,4 @@
 
 ### Coordinate Reference System (CRS) Protocol
 All spatial layers are projected to consistent local UTM zones (e.g., EPSG:32643 for Karnataka / Western Ghats) for accurate Euclidean distance (meters) and polygonal area ($\text{m}^2$) measurements, and reprojected to EPSG:4326 for Leaflet Web GIS visualization.
+

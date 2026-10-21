@@ -90,3 +90,4 @@ MinorProject/
 ├── reports/                       # Generated CSV summaries & evaluation charts
 └── run_platform.py                # One-click platform launcher
 ```
+
