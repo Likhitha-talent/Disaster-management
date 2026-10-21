@@ -1,17 +1,7 @@
 # AI-Powered Satellite Image-Based Post-Disaster Damage Assessment
 ### with GIS-Based Hazard Mapping and Relocation Decision Support
 
-**Institution:** The National Institute of Engineering, Mysuru  
-**Department:** Information Science and Engineering  
-**Academic Year:** 2026–27 | **Semester:** V, Section 'B'  
-**Course Code:** BIS586 (Minor Project) | **Batch No:** B10  
-**Faculty Guide:** Nandini P, Assistant Professor  
-
-#### Project Team
-- **Likhitha Shree L C** (USN: `4NI24IS091`)
-- **Namratha M Sherughar** (USN: `4NI24IS114`)
-- **Nischitha R N** (USN: `4NI24IS119`)
-- **Panchami Urs S** (USN: `4NI24IS123`)
+An intelligent, GIS-enabled spatial decision-support platform designed to transform disaster management from reactive response to proactive spatial planning. The system combines deep learning on bi-temporal satellite imagery, multi-hazard AHP risk screening, real-time meteorological inundation forecasting, and multi-criteria TOPSIS candidate relocation ranking.
 
 ---
 

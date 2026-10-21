@@ -1,10 +1,7 @@
 # Project System Architecture
 
 **Project Title:** AI-Powered Satellite Image-Based Post-Disaster Damage Assessment with GIS-Based Hazard Mapping and Relocation Decision Support  
-**Course & Code:** BIS586 | 5th Semester, Academic Year 2026–27  
-**Department:** Information Science and Engineering, The National Institute of Engineering, Mysuru  
-**Faculty Guide:** Nandini P, Assistant Professor  
-**Student Team:** Likhitha Shree L C, Namratha M Sherughar, Nischitha R N, Panchami Urs S  
+**Domain:** Artificial Intelligence, Computer Vision & Geospatial Information Systems (GIS)  
 
 ---
 

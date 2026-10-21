@@ -1,8 +1,6 @@
 # Mathematical Formulation: AHP & TOPSIS Decision Engines
 
-**Course:** BIS586 | 5th Semester | Dept. of Information Science & Engineering  
-**Institution:** The National Institute of Engineering, Mysuru  
-**Guide:** Nandini P, Assistant Professor  
+**Methodological Specification:** Multi-Hazard Analytic Hierarchy Process (AHP) & Technique for Order of Preference by Similarity to Ideal Solution (TOPSIS)  
 
 ---
 
