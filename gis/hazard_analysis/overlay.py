@@ -8,9 +8,9 @@ consistency checks (Consistency Ratio CR < 0.10), and GeoJSON outputs.
 
 import numpy as np
 from typing import Dict, List, Tuple, Any, Optional
-from shapely.geometry import shape, mapping, Polygon, MultiPolygon
-from shapely.ops import unary_union
-import geopandas as gpd
+
+
+
 
 
 # Random Index (RI) table for AHP consistency calculation up to n=10
@@ -97,6 +97,28 @@ class HazardOverlayEngine:
         self.amber_threshold = amber_threshold
 
         self.weights, self.lambda_max, self.cr, self.is_consistent = compute_ahp_weights(self.pairwise_matrix)
+
+    def update_weights_and_cr(self, direct_weights: np.ndarray):
+        """
+        Derives the reciprocal Saaty pairwise comparison matrix from priority weights,
+        calculates lambda_max, Consistency Index (CI), and Consistency Ratio (CR).
+        """
+        n = len(direct_weights)
+        matrix = np.ones((n, n), dtype=float)
+        for i in range(n):
+            for j in range(i + 1, n):
+                ratio = float(direct_weights[i]) / max(float(direct_weights[j]), 1e-6)
+                if ratio >= 1.0:
+                    val = float(min(9, max(1, round(ratio))))
+                    matrix[i, j] = val
+                    matrix[j, i] = 1.0 / val
+                else:
+                    val = float(min(9, max(1, round(1.0 / ratio))))
+                    matrix[i, j] = 1.0 / val
+                    matrix[j, i] = val
+        self.pairwise_matrix = matrix
+        _, self.lambda_max, self.cr, self.is_consistent = compute_ahp_weights(matrix)
+        self.weights = direct_weights
 
     def evaluate_cell_score(self, factor_scores: Dict[str, float]) -> float:
         """

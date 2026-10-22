@@ -286,30 +286,30 @@
         <div class="bg-slate-950/80 border border-slate-800 p-3.5 rounded-xl space-y-2">
           <div class="flex justify-between items-center text-xs">
             <span class="font-bold text-slate-300">Damage Classification Distribution</span>
-            <span class="text-[11px] text-slate-400 font-mono">50 Buildings</span>
+            <span class="text-[11px] text-slate-400 font-mono" id="overview-meter-total">50 Buildings</span>
           </div>
           <div class="h-2.5 w-full bg-slate-800 rounded-full overflow-hidden flex shadow-inner">
-            <div style="width: 30%; background: #10B981;" title="Undamaged: 15"></div>
-            <div style="width: 24%; background: #FBBF24;" title="Minor: 12"></div>
-            <div style="width: 26%; background: #F97316;" title="Major: 13"></div>
-            <div style="width: 20%; background: #EF4444;" title="Destroyed: 10"></div>
+            <div id="meter-undamaged" style="width: 30%; background: #10B981;" title="Undamaged: 15"></div>
+            <div id="meter-minor" style="width: 24%; background: #FBBF24;" title="Minor: 12"></div>
+            <div id="meter-major" style="width: 26%; background: #F97316;" title="Major: 13"></div>
+            <div id="meter-destroyed" style="width: 20%; background: #EF4444;" title="Destroyed: 10"></div>
           </div>
           <div class="grid grid-cols-2 gap-2 text-xs pt-1">
             <div class="flex items-center justify-between text-slate-300">
               <span class="flex items-center"><span class="legend-box" style="background: #10B981;"></span>Undamaged</span>
-              <span class="font-mono font-semibold text-white">15 (30%)</span>
+              <span class="font-mono font-semibold text-white" id="count-undamaged">15 (30%)</span>
             </div>
             <div class="flex items-center justify-between text-slate-300">
               <span class="flex items-center"><span class="legend-box" style="background: #FBBF24;"></span>Minor Damage</span>
-              <span class="font-mono font-semibold text-white">12 (24%)</span>
+              <span class="font-mono font-semibold text-white" id="count-minor">12 (24%)</span>
             </div>
             <div class="flex items-center justify-between text-slate-300">
               <span class="flex items-center"><span class="legend-box" style="background: #F97316;"></span>Major Damage</span>
-              <span class="font-mono font-semibold text-white">13 (26%)</span>
+              <span class="font-mono font-semibold text-white" id="count-major">13 (26%)</span>
             </div>
             <div class="flex items-center justify-between text-slate-300">
               <span class="flex items-center"><span class="legend-box" style="background: #EF4444;"></span>Destroyed</span>
-              <span class="font-mono font-semibold text-white">10 (20%)</span>
+              <span class="font-mono font-semibold text-white" id="count-destroyed">10 (20%)</span>
             </div>
           </div>
         </div>
@@ -441,7 +441,7 @@
         <div class="bg-slate-950/90 border border-slate-800 p-3.5 rounded-xl space-y-3">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-slate-300">Factor Weights (\(\sum w_i = 1.0\))</span>
-            <span class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-mono font-semibold">
+            <span id="ahp-cr-badge" class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-mono font-semibold">
               CR = 0.042 (&lt; 0.10 Consistent)
             </span>
           </div>
@@ -498,14 +498,32 @@
         </div>
 
         <!-- Planning Rules -->
-        <div class="bg-slate-950/90 border border-slate-800 p-3 rounded-xl text-xs space-y-2">
-          <span class="font-bold text-slate-300 block">Exclusion & Capacity Parameters</span>
-          <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-400">
-            <div>Sphere Area: <span class="text-white font-mono font-medium">30 m² / person</span></div>
-            <div>Usable Net Fraction: <span class="text-white font-mono font-medium">65%</span></div>
-            <div>Slope Limit: <span class="text-white font-mono font-medium">&le; 16.0°</span></div>
-            <div>Hazard Buffer: <span class="text-white font-mono font-medium">&ge; 250 m</span></div>
+        <div class="bg-slate-950/90 border border-slate-800 p-3.5 rounded-xl text-xs space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-300 block">Exclusion & Capacity Parameters</span>
+            <span class="text-[10px] text-slate-400">Interactive Constraints</span>
           </div>
+          <div class="grid grid-cols-2 gap-2.5 text-[11px] text-slate-300">
+            <div class="space-y-1">
+              <label class="text-slate-400 block text-[10px]">Sphere Area (m²/person)</label>
+              <input type="number" id="reloc-param-area" value="30" min="10" max="100" step="5" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white font-mono text-xs focus:border-indigo-500 outline-none">
+            </div>
+            <div class="space-y-1">
+              <label class="text-slate-400 block text-[10px]">Net Usable Fraction (%)</label>
+              <input type="number" id="reloc-param-usable" value="65" min="20" max="95" step="5" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white font-mono text-xs focus:border-indigo-500 outline-none">
+            </div>
+            <div class="space-y-1">
+              <label class="text-slate-400 block text-[10px]">Slope Limit (&le; °)</label>
+              <input type="number" id="reloc-param-slope" value="16.0" min="2.0" max="30.0" step="1.0" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white font-mono text-xs focus:border-indigo-500 outline-none">
+            </div>
+            <div class="space-y-1">
+              <label class="text-slate-400 block text-[10px]">Hazard Buffer (&ge; m)</label>
+              <input type="number" id="reloc-param-buffer" value="250" min="50" max="1000" step="25" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white font-mono text-xs focus:border-indigo-500 outline-none">
+            </div>
+          </div>
+          <button onclick="recalculateRelocation()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-1.5 rounded-lg text-xs transition-all shadow flex items-center justify-center gap-1.5">
+            <i data-lucide="sliders" class="w-3.5 h-3.5"></i> Recalculate Relocation Plan
+          </button>
         </div>
 
         <!-- Candidate Sites Dynamic Container -->
@@ -643,6 +661,27 @@
 
         updateRelocationCards();
         updateFlaggedList();
+
+        if (allHazardZones.length >= 3) {
+          document.getElementById('score-red').innerText = allHazardZones[0].properties.composite_risk_score;
+          document.getElementById('score-amber').innerText = allHazardZones[1].properties.composite_risk_score;
+          document.getElementById('score-green').innerText = allHazardZones[2].properties.composite_risk_score;
+        }
+        if (hazData.metadata && hazData.metadata.consistency_ratio !== undefined) {
+          const cr = hazData.metadata.consistency_ratio;
+          const isConsistent = hazData.metadata.is_consistent !== undefined ? hazData.metadata.is_consistent : (cr < 0.10);
+          const badge = document.getElementById('ahp-cr-badge');
+          if (badge) {
+            if (isConsistent) {
+              badge.className = "text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-mono font-semibold";
+              badge.innerText = `CR = ${cr.toFixed(3)} (< 0.10 Consistent)`;
+            } else {
+              badge.className = "text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded font-mono font-semibold";
+              badge.innerText = `CR = ${cr.toFixed(3)} (≥ 0.10 Inconsistent)`;
+            }
+          }
+        }
+        await refreshProjectSummary();
       } catch (err) {
         console.warn("API Error, please ensure backend is running:", err);
       }
@@ -717,6 +756,22 @@
           document.getElementById('score-red').innerText = allHazardZones[0].properties.composite_risk_score;
           document.getElementById('score-amber').innerText = allHazardZones[1].properties.composite_risk_score;
           document.getElementById('score-green').innerText = allHazardZones[2].properties.composite_risk_score;
+        }
+
+        const meta = hazData.metadata || {};
+        if (meta.consistency_ratio !== undefined) {
+          const cr = meta.consistency_ratio;
+          const isConsistent = meta.is_consistent !== undefined ? meta.is_consistent : (cr < 0.10);
+          const badge = document.getElementById('ahp-cr-badge');
+          if (badge) {
+            if (isConsistent) {
+              badge.className = "text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-mono font-semibold";
+              badge.innerText = `CR = ${cr.toFixed(3)} (< 0.10 Consistent)`;
+            } else {
+              badge.className = "text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded font-mono font-semibold";
+              badge.innerText = `CR = ${cr.toFixed(3)} (≥ 0.10 Inconsistent)`;
+            }
+          }
         }
       } catch (err) {
         console.warn("Failed to switch hazard mode:", err);
@@ -847,6 +902,7 @@
           inspectBuilding(selectedBuilding);
           renderBuildings(allBuildings);
           updateFlaggedList();
+          await refreshProjectSummary();
         }
       } catch (err) {
         console.warn("Saved locally.");
@@ -942,6 +998,69 @@
       });
     }
 
+    async function refreshProjectSummary() {
+      try {
+        const res = await fetch(`${API_BASE}/projects/${PROJECT_ID}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const summary = data.summary;
+        if (!summary) return;
+
+        // KPI Cards
+        const kBldgs = document.getElementById('kpi-total-bldgs');
+        const kSev = document.getElementById('kpi-severely-damaged');
+        const kRate = document.getElementById('kpi-damage-rate');
+        const kFlag = document.getElementById('kpi-flagged');
+        const kCap = document.getElementById('kpi-capacity');
+
+        if (kBldgs) kBldgs.innerText = summary.total_buildings_assessed;
+        if (kSev) kSev.innerText = summary.severely_damaged_count;
+        if (kRate) kRate.innerText = `${summary.damage_rate_percentage}% structural impact`;
+        if (kFlag) kFlag.innerText = summary.flagged_for_human_review;
+        if (kCap) kCap.innerText = summary.total_relocation_capacity_available.toLocaleString();
+
+        // Breakdown Meter & Counts
+        const total = summary.total_buildings_assessed || 1;
+        const counts = summary.damage_breakdown || {};
+        const und = counts.undamaged || 0;
+        const min = counts.minor_damage || 0;
+        const maj = counts.major_damage || 0;
+        const des = counts.destroyed || 0;
+
+        const pctUnd = ((und / total) * 100).toFixed(0);
+        const pctMin = ((min / total) * 100).toFixed(0);
+        const pctMaj = ((maj / total) * 100).toFixed(0);
+        const pctDes = ((des / total) * 100).toFixed(0);
+
+        const mUnd = document.getElementById('meter-undamaged');
+        const mMin = document.getElementById('meter-minor');
+        const mMaj = document.getElementById('meter-major');
+        const mDes = document.getElementById('meter-destroyed');
+
+        if (mUnd) { mUnd.style.width = `${pctUnd}%`; mUnd.title = `Undamaged: ${und}`; }
+        if (mMin) { mMin.style.width = `${pctMin}%`; mMin.title = `Minor: ${min}`; }
+        if (mMaj) { mMaj.style.width = `${pctMaj}%`; mMaj.title = `Major: ${maj}`; }
+        if (mDes) { mDes.style.width = `${pctDes}%`; mDes.title = `Destroyed: ${des}`; }
+
+        const cUnd = document.getElementById('count-undamaged');
+        const cMin = document.getElementById('count-minor');
+        const cMaj = document.getElementById('count-major');
+        const cDes = document.getElementById('count-destroyed');
+
+        if (cUnd) cUnd.innerText = `${und} (${pctUnd}%)`;
+        if (cMin) cMin.innerText = `${min} (${pctMin}%)`;
+        if (cMaj) cMaj.innerText = `${maj} (${pctMaj}%)`;
+        if (cDes) cDes.innerText = `${des} (${pctDes}%)`;
+
+        const mTotal = document.getElementById('overview-meter-total');
+        if (mTotal) mTotal.innerText = `${total} Buildings Assessed`;
+      } catch (err) {
+        console.warn('Error refreshing summary:', err);
+      }
+    }
+
+    let ahpDebounceTimer = null;
+
     function updateAHP() {
       const d = parseFloat(document.getElementById('slider-damage').value);
       const f = parseFloat(document.getElementById('slider-flood').value);
@@ -954,6 +1073,83 @@
       document.getElementById('w-slope-val').innerText = s.toFixed(2);
       document.getElementById('w-land-val').innerText = l.toFixed(2);
       document.getElementById('w-pop-val').innerText = p.toFixed(2);
+
+      clearTimeout(ahpDebounceTimer);
+      ahpDebounceTimer = setTimeout(async () => {
+        try {
+          const res = await fetch(`${API_BASE}/projects/${PROJECT_ID}/risk-analysis?use_live_weather=${currentRiskMode === 'weather'}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              damage_density: d,
+              flood_hydro_exposure: f,
+              slope_landslide: s,
+              land_cover_hazard: l,
+              population_density: p,
+              red_threshold: 0.65,
+              amber_threshold: 0.35
+            })
+          });
+
+          if (!res.ok) return;
+          const data = await res.json();
+          allHazardZones = data.features || [];
+          renderHazardZones();
+
+          // Update Consistency Ratio badge
+          const meta = data.metadata || {};
+          const cr = meta.consistency_ratio !== undefined ? meta.consistency_ratio : 0.042;
+          const isConsistent = meta.is_consistent !== undefined ? meta.is_consistent : (cr < 0.10);
+          const badge = document.getElementById('ahp-cr-badge');
+          if (badge) {
+            if (isConsistent) {
+              badge.className = 'text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-mono font-semibold';
+              badge.innerText = `CR = ${cr.toFixed(3)} (< 0.10 Consistent)`;
+            } else {
+              badge.className = 'text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded font-mono font-semibold';
+              badge.innerText = `CR = ${cr.toFixed(3)} (≥ 0.10 Inconsistent)`;
+            }
+          }
+
+          // Update zone scores
+          if (allHazardZones.length >= 3) {
+            document.getElementById('score-red').innerText = allHazardZones[0].properties.composite_risk_score;
+            document.getElementById('score-amber').innerText = allHazardZones[1].properties.composite_risk_score;
+            document.getElementById('score-green').innerText = allHazardZones[2].properties.composite_risk_score;
+          }
+        } catch (err) {
+          console.warn('AHP recalculation error:', err);
+        }
+      }, 300);
+    }
+
+    async function recalculateRelocation() {
+      const area = parseFloat(document.getElementById('reloc-param-area').value) || 30.0;
+      const usable = parseFloat(document.getElementById('reloc-param-usable').value) || 65.0;
+      const slope = parseFloat(document.getElementById('reloc-param-slope').value) || 16.0;
+      const buffer = parseFloat(document.getElementById('reloc-param-buffer').value) || 250.0;
+
+      try {
+        const res = await fetch(`${API_BASE}/projects/${PROJECT_ID}/relocation-analysis`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            planning_area_per_person_sqm: area,
+            usable_area_fraction: usable / 100.0,
+            max_allowable_slope_deg: slope,
+            min_hazard_buffer_meters: buffer
+          })
+        });
+
+        if (!res.ok) return;
+        const data = await res.json();
+        allRelocationSites = data.features || [];
+        renderRelocationSites();
+        updateRelocationCards();
+        await refreshProjectSummary();
+      } catch (err) {
+        console.warn('Relocation recalculation error:', err);
+      }
     }
 
     function toggleLayer(type) {

@@ -399,5 +399,6 @@ def generate_sample_study_dataset(base_dir: str):
 
 
 if __name__ == "__main__":
-    generate_sample_study_dataset("c:/Users/LIKHITHA SHREE L C/OneDrive/Desktop/MinorProject/data/samples")
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    generate_sample_study_dataset(current_dir)
 

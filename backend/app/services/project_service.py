@@ -14,6 +14,11 @@ from gis.hazard_analysis.weather_service import WeatherHazardService
 from gis.relocation.topsis import RelocationDecisionEngine
 
 
+OUTPUTS_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../../../data/outputs")
+)
+REVIEW_STORE_FILE = os.path.join(OUTPUTS_DIR, "reviewed_buildings.json")
+
 SAMPLE_DATA_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "../../../data/samples")
 )
@@ -54,6 +59,38 @@ class ProjectDataStore:
         else:
             self.candidate_sites_data = []
 
+        # Load persisted human building reviews if present
+        if os.path.exists(REVIEW_STORE_FILE):
+            try:
+                with open(REVIEW_STORE_FILE, "r", encoding="utf-8") as f:
+                    saved_reviews = json.load(f)
+                if isinstance(saved_reviews, dict):
+                    colors = {
+                        "undamaged": "#10B981",
+                        "minor_damage": "#FBBF24",
+                        "major_damage": "#F97316",
+                        "destroyed": "#EF4444",
+                    }
+                    level_map = {"undamaged": 0, "minor_damage": 1, "major_damage": 2, "destroyed": 3}
+                    for feat in self.buildings_data:
+                        b_id = feat.get("properties", {}).get("building_id")
+                        if b_id in saved_reviews:
+                            rev = saved_reviews[b_id]
+                            props = feat["properties"]
+                            props["original_damage_class"] = rev.get("original_damage_class") or props.get("damage_class")
+                            props["original_confidence"] = rev.get("original_confidence", props.get("confidence"))
+                            props["damage_class"] = rev["verified_damage_class"]
+                            props["damage_level"] = level_map.get(rev["verified_damage_class"], 0)
+                            props["damage_color"] = colors.get(rev["verified_damage_class"], "#6B7280")
+                            props["review_status"] = "VERIFIED_BY_ANALYST"
+                            props["needs_review"] = False
+                            props["reviewer_id"] = rev.get("reviewer_id", "OFFICER-SDMA-01")
+                            props["reviewer_notes"] = rev.get("reviewer_notes")
+                            props["reviewed_at"] = rev.get("reviewed_at", "2026-10-21T16:00:00Z")
+            except Exception:
+                # Fall back gracefully to in-memory seed data on corrupt/unreadable file
+                pass
+
         # Initialize engines
         self.hazard_engine = HazardOverlayEngine()
         self.relocation_engine = RelocationDecisionEngine()
@@ -64,16 +101,35 @@ class ProjectDataStore:
             self.candidate_sites_data
         )
 
+    def _persist_building_review(self, building_id: str, review_record: Dict[str, Any]):
+        """Persist human review override to disk safely with graceful fallback"""
+        try:
+            os.makedirs(OUTPUTS_DIR, exist_ok=True)
+            saved_reviews = {}
+            if os.path.exists(REVIEW_STORE_FILE):
+                try:
+                    with open(REVIEW_STORE_FILE, "r", encoding="utf-8") as f:
+                        saved_reviews = json.load(f)
+                    if not isinstance(saved_reviews, dict):
+                        saved_reviews = {}
+                except Exception:
+                    saved_reviews = {}
+            saved_reviews[building_id] = review_record
+            with open(REVIEW_STORE_FILE, "w", encoding="utf-8") as f:
+                json.dump(saved_reviews, f, indent=2)
+        except Exception:
+            # File system write failure falls back gracefully to in-memory state
+            pass
+
     def get_live_weather(self) -> Dict[str, Any]:
         return self.weather_service.fetch_live_weather()
 
     def get_hazard_zones(self, use_live_weather: bool = False) -> Dict[str, Any]:
         if not use_live_weather:
-            return {
-                "type": "FeatureCollection",
-                "metadata": {"mode": "SATELLITE_BASELINE", "description": "Topographical and structural baseline hazard screening"},
-                "features": self.hazard_zones_data
-            }
+            result = self.hazard_engine.process_grid_zones(self.hazard_zones_data)
+            result["metadata"]["mode"] = "SATELLITE_BASELINE"
+            result["metadata"]["description"] = "Topographical and structural baseline hazard screening"
+            return result
 
         # Dynamic live weather integration mode
         weather = self.get_live_weather()
@@ -177,8 +233,10 @@ class ProjectDataStore:
             props = feat.get("properties", {})
             if props.get("building_id") == building_id:
                 # Save audit trail
-                props["original_damage_class"] = props.get("original_damage_class") or props.get("damage_class")
-                props["original_confidence"] = props.get("confidence")
+                orig_class = props.get("original_damage_class") or props.get("damage_class")
+                orig_conf = props.get("confidence")
+                props["original_damage_class"] = orig_class
+                props["original_confidence"] = orig_conf
                 props["damage_class"] = new_damage_class
                 props["damage_level"] = level_map.get(new_damage_class, 0)
                 props["damage_color"] = colors.get(new_damage_class, "#6B7280")
@@ -187,6 +245,17 @@ class ProjectDataStore:
                 props["reviewer_id"] = reviewer_id
                 props["reviewer_notes"] = reviewer_notes
                 props["reviewed_at"] = "2026-10-21T16:00:00Z"
+
+                # Persist to disk safely with graceful in-memory fallback
+                self._persist_building_review(building_id, {
+                    "original_damage_class": orig_class,
+                    "original_confidence": orig_conf,
+                    "verified_damage_class": new_damage_class,
+                    "reviewer_id": reviewer_id,
+                    "reviewer_notes": reviewer_notes,
+                    "reviewed_at": "2026-10-21T16:00:00Z"
+                })
+
                 return feat
         return None
 
@@ -199,8 +268,10 @@ class ProjectDataStore:
     ) -> Dict[str, Any]:
         # Custom weights normalized
         total_w = sum(weights_dict.values())
-        norm_weights = [weights_dict.get(f, 0.2) / total_w for f in self.hazard_engine.factors]
-        self.hazard_engine.weights = np.array(norm_weights)
+        if total_w <= 0:
+            total_w = 1.0
+        norm_weights = np.array([weights_dict.get(f, 0.2) / total_w for f in self.hazard_engine.factors], dtype=float)
+        self.hazard_engine.update_weights_and_cr(norm_weights)
         self.hazard_engine.red_threshold = red_threshold
         self.hazard_engine.amber_threshold = amber_threshold
 
@@ -230,4 +301,3 @@ class ProjectDataStore:
 
 # Singleton project store instance
 store = ProjectDataStore()
-

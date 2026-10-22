@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from typing import Dict, List, Any, Optional, Tuple
-from shapely.geometry import Polygon, mapping
+
 import cv2
 
 
