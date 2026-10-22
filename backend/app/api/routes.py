@@ -5,7 +5,7 @@ Endpoints align with Section 8 of the Project Implementation Specification.
 
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import JSONResponse, PlainTextResponse
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Union
 import csv
 import io
 
@@ -15,6 +15,7 @@ from backend.app.schemas.schemas import (
     AHPWeightConfig,
     RelocationParamConfig,
     DamageAssessmentRequest,
+    SatelliteInferenceRequest,
 )
 from backend.app.services.project_service import store
 
@@ -28,6 +29,18 @@ def health_check():
         "service": "AI-Powered Post-Disaster Damage Assessment & Relocation API",
         "version": "1.0.0",
     }
+
+
+@router.get("/models/damage-assessment/status")
+def get_model_status():
+    """Returns AI model architecture and weights initialization status"""
+    return store.get_model_status()
+
+
+@router.get("/samples/satellite-tiles")
+def get_sample_satellite_tiles():
+    """Returns pre- and post-disaster sample tiles as base64 data URIs for instant testing"""
+    return store.get_sample_satellite_tiles()
 
 
 @router.get("/projects")
@@ -48,15 +61,60 @@ def get_project_details(project_id: str):
 
 
 @router.post("/projects/{project_id}/damage-assessment")
-def run_damage_assessment(project_id: str, payload: DamageAssessmentRequest):
+def run_damage_assessment(
+    project_id: str,
+    payload: Union[SatelliteInferenceRequest, DamageAssessmentRequest],
+):
+    """
+    Executes post-disaster damage assessment. If pre- and post-disaster satellite tiles are provided,
+    executes bi-temporal Siamese U-Net neural inference, visual mask generation, and polygon georeferencing.
+    """
+    if isinstance(payload, SatelliteInferenceRequest) and payload.pre_image_base64 and payload.post_image_base64:
+        try:
+            result = store.run_satellite_damage_assessment(
+                pre_image_base64=payload.pre_image_base64,
+                post_image_base64=payload.post_image_base64,
+                confidence_threshold=payload.confidence_threshold,
+                meters_per_pixel=payload.meters_per_pixel,
+                origin_lat=payload.origin_lat,
+                origin_lon=payload.origin_lon,
+                apply_to_project=payload.apply_to_project,
+            )
+            return result
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Inference execution error: {str(e)}")
+
     summary = store.get_summary_statistics()
     return {
         "job_id": f"job-infer-{project_id}-992",
         "status": "COMPLETED",
-        "model_version": payload.model_version,
+        "model_version": getattr(payload, "model_version", "Siamese-UNet-v1.0.0"),
         "confidence_threshold": payload.confidence_threshold,
-        "summary": summary
+        "summary": summary,
     }
+
+
+@router.post("/projects/{project_id}/satellite-inference")
+def run_satellite_inference_direct(project_id: str, payload: SatelliteInferenceRequest):
+    """
+    Direct endpoint for bi-temporal satellite image inference.
+    """
+    try:
+        return store.run_satellite_damage_assessment(
+            pre_image_base64=payload.pre_image_base64,
+            post_image_base64=payload.post_image_base64,
+            confidence_threshold=payload.confidence_threshold,
+            meters_per_pixel=payload.meters_per_pixel,
+            origin_lat=payload.origin_lat,
+            origin_lon=payload.origin_lon,
+            apply_to_project=payload.apply_to_project,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Inference execution error: {str(e)}")
 
 
 @router.get("/projects/{project_id}/buildings")
@@ -145,7 +203,6 @@ def export_project_report(project_id: str, report_format: str = "json"):
     sites = store.get_relocation_sites().get("features", [])
 
     if report_format.lower() == "csv":
-        # Generate CSV stream of relocation rankings
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow([
@@ -173,7 +230,6 @@ def export_project_report(project_id: str, report_format: str = "json"):
             "Content-Disposition": f"attachment; filename=relocation_rankings_{project_id}.csv"
         })
 
-    # Default JSON comprehensive summary
     return {
         "project": meta,
         "executive_summary": summary,
@@ -191,4 +247,3 @@ def export_project_report(project_id: str, report_format: str = "json"):
             for s in sites
         ]
     }
-

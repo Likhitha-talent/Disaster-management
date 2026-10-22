@@ -43,3 +43,12 @@ class DamageAssessmentRequest(BaseModel):
     confidence_threshold: float = 0.65
     model_version: str = "Siamese-UNet-v1.0.0"
 
+
+class SatelliteInferenceRequest(BaseModel):
+    pre_image_base64: str
+    post_image_base64: str
+    confidence_threshold: float = 0.65
+    meters_per_pixel: float = 0.50
+    origin_lat: float = 12.3375
+    origin_lon: float = 75.8062
+    apply_to_project: bool = False

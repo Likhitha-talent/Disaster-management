@@ -165,6 +165,14 @@
             </span>
             <input type="checkbox" id="toggle-relocation" checked onchange="toggleLayer('relocation')" class="rounded bg-slate-900 border-slate-700 text-purple-600 focus:ring-0">
           </label>
+
+          <label class="flex items-center justify-between cursor-pointer text-slate-300 hover:text-white">
+            <span class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+              Satellite AI Mask Overlay
+            </span>
+            <input type="checkbox" id="toggle-mask-overlay" checked onchange="toggleLayer('mask-overlay')" class="rounded bg-slate-900 border-slate-700 text-cyan-500 focus:ring-0">
+          </label>
         </div>
       </div>
 
@@ -328,9 +336,168 @@
 
       <!-- ================= TAB 2: DAMAGE ASSESSMENT ================= -->
       <div id="panel-damage" class="tab-panel hidden space-y-4">
-        <div>
-          <h2 class="text-sm font-bold text-white">Bi-Temporal Damage Segmentation</h2>
-          <p class="text-xs text-slate-400">Shared-weight Siamese U-Net with feature-difference fusion</p>
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-white">Bi-Temporal Damage Assessment</h2>
+            <p class="text-xs text-slate-400">Siamese U-Net Feature-Difference Fusion Pipeline</p>
+          </div>
+          <span id="model-status-badge" class="text-[10px] font-mono px-2 py-0.5 rounded border bg-amber-500/10 text-amber-400 border-amber-500/20 font-semibold">
+            Checking Model...
+          </span>
+        </div>
+
+        <!-- Model Status Notice & Diagnostics -->
+        <div id="model-status-box" class="bg-slate-950/90 border border-slate-800 p-3 rounded-xl text-xs space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-300 font-semibold flex items-center gap-1.5">
+              <i data-lucide="cpu" class="w-3.5 h-3.5 text-indigo-400"></i>
+              <span id="model-device-label">PyTorch Engine: CPU</span>
+            </span>
+            <span id="model-weights-tag" class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-700">
+              UNTRAINED_DEMO
+            </span>
+          </div>
+          <p id="model-status-notice" class="text-[11px] text-slate-400 leading-relaxed">
+            Running in demonstration mode with structural guidance. Calibrated checkpoints can be placed in ml/weights/.
+          </p>
+        </div>
+
+        <!-- Satellite Tile Upload & AI Inference Suite -->
+        <div class="bg-slate-950/90 border border-indigo-500/30 p-3.5 rounded-xl space-y-3.5 shadow-lg">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-white flex items-center gap-1.5">
+              <i data-lucide="satellite" class="w-4 h-4 text-indigo-400"></i>
+              Satellite Imagery Upload & Inference
+            </span>
+            <button onclick="loadSampleDisasterPair()" class="text-[11px] font-semibold text-indigo-300 hover:text-indigo-200 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all">
+              <i data-lucide="sparkles" class="w-3 h-3 text-amber-400"></i>
+              Load Benchmark Pair
+            </button>
+          </div>
+
+          <!-- Dual Imagery Tile Dropzones / Previews -->
+          <div class="grid grid-cols-2 gap-2.5">
+            <!-- Pre-Disaster Tile -->
+            <div class="space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-semibold text-slate-300">Pre-Disaster Tile</span>
+                <span id="pre-tile-dims" class="text-[10px] font-mono text-slate-500">None</span>
+              </div>
+              <div onclick="document.getElementById('pre-tile-input').click()" class="h-28 rounded-lg border border-dashed border-slate-700 hover:border-indigo-500/60 bg-slate-900/60 flex flex-col items-center justify-center p-2 cursor-pointer transition-all overflow-hidden relative group">
+                <input type="file" id="pre-tile-input" accept="image/*" class="hidden" onchange="handleTileUpload(event, 'pre')">
+                <img id="pre-tile-preview" class="hidden w-full h-full object-cover rounded">
+                <div id="pre-tile-empty" class="flex flex-col items-center text-center space-y-1">
+                  <i data-lucide="upload" class="w-5 h-5 text-slate-500 group-hover:text-indigo-400 transition-colors"></i>
+                  <span class="text-[10px] text-slate-400">Select Pre-Event Tile (PNG/JPG/TIF)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Post-Disaster Tile -->
+            <div class="space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-semibold text-slate-300">Post-Disaster Tile</span>
+                <span id="post-tile-dims" class="text-[10px] font-mono text-slate-500">None</span>
+              </div>
+              <div onclick="document.getElementById('post-tile-input').click()" class="h-28 rounded-lg border border-dashed border-slate-700 hover:border-indigo-500/60 bg-slate-900/60 flex flex-col items-center justify-center p-2 cursor-pointer transition-all overflow-hidden relative group">
+                <input type="file" id="post-tile-input" accept="image/*" class="hidden" onchange="handleTileUpload(event, 'post')">
+                <img id="post-tile-preview" class="hidden w-full h-full object-cover rounded">
+                <div id="post-tile-empty" class="flex flex-col items-center text-center space-y-1">
+                  <i data-lucide="upload" class="w-5 h-5 text-slate-500 group-hover:text-indigo-400 transition-colors"></i>
+                  <span class="text-[10px] text-slate-400">Select Post-Event Tile (PNG/JPG/TIF)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Inference Parameters -->
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">Pixel GSD (m/pixel)</label>
+              <input type="number" id="inf-param-gsd" value="0.5" step="0.1" min="0.1" max="10.0" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-white font-mono text-xs focus:ring-1 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">Confidence Threshold</label>
+              <input type="number" id="inf-param-conf" value="0.65" step="0.05" min="0.1" max="0.95" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-white font-mono text-xs focus:ring-1 focus:ring-indigo-500">
+            </div>
+          </div>
+
+          <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+            <input type="checkbox" id="inf-param-apply" checked class="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0">
+            <span>Apply Inferred Buildings & Damage to Project GIS & KPIs</span>
+          </label>
+
+          <!-- Run Inference Action Button -->
+          <button id="btn-run-inference" onclick="runSatelliteInference()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 px-3 rounded-lg text-xs shadow-md shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all">
+            <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i>
+            <span id="btn-run-infer-text">Run Siamese AI Damage Assessment</span>
+          </button>
+        </div>
+
+        <!-- Visual Inference Result Card (Hidden until inference executes) -->
+        <div id="card-inference-results" class="hidden bg-slate-950/90 border border-emerald-500/30 p-3.5 rounded-xl space-y-3 shadow-lg">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <span class="text-xs font-bold text-emerald-400 uppercase tracking-wide flex items-center gap-1.5">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+              Damage Assessment Output
+            </span>
+            <span id="inf-result-status" class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
+              SUCCESS
+            </span>
+          </div>
+
+          <!-- High-Res Visual Segmentation Mask Preview -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-[11px] text-slate-400">
+              <span>Damage Segmentation Mask</span>
+              <button onclick="toggleMaskOverlayOnMap()" id="btn-toggle-mask-map" class="text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1">
+                <i data-lucide="layers" class="w-3 h-3"></i> Overlay on GIS Map
+              </button>
+            </div>
+            <div class="rounded-lg overflow-hidden border border-slate-800 bg-black/60 flex items-center justify-center max-h-48 relative">
+              <img id="inf-mask-preview-img" class="w-full max-h-48 object-contain" alt="Segmentation Overlay">
+            </div>
+          </div>
+
+          <!-- Summary Metric 4-Grid -->
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-slate-900/80 border border-slate-800 p-2 rounded-lg">
+              <span class="text-[10px] text-slate-400 block">Localized Buildings</span>
+              <span id="inf-res-total" class="font-mono font-bold text-white text-sm">0</span>
+            </div>
+            <div class="bg-slate-900/80 border border-slate-800 p-2 rounded-lg">
+              <span class="text-[10px] text-slate-400 block">Severe / Destroyed</span>
+              <span id="inf-res-severe" class="font-mono font-bold text-rose-400 text-sm">0</span>
+            </div>
+            <div class="bg-slate-900/80 border border-slate-800 p-2 rounded-lg">
+              <span class="text-[10px] text-slate-400 block">Damage Rate</span>
+              <span id="inf-res-rate" class="font-mono font-bold text-amber-400 text-sm">0%</span>
+            </div>
+            <div class="bg-slate-900/80 border border-slate-800 p-2 rounded-lg">
+              <span class="text-[10px] text-slate-400 block">Mean AI Confidence</span>
+              <span id="inf-res-conf" class="font-mono font-bold text-emerald-400 text-sm">0.0%</span>
+            </div>
+          </div>
+
+          <!-- 4-Class Breakdown Pills -->
+          <div class="grid grid-cols-4 gap-1 text-center text-[10px] pt-1">
+            <div class="bg-emerald-500/10 border border-emerald-500/20 py-1 rounded text-emerald-400 font-mono">
+              <span class="block text-[9px] text-emerald-500 uppercase">Undam</span>
+              <span id="inf-pill-undamaged" class="font-bold">0</span>
+            </div>
+            <div class="bg-amber-500/10 border border-amber-500/20 py-1 rounded text-amber-400 font-mono">
+              <span class="block text-[9px] text-amber-500 uppercase">Minor</span>
+              <span id="inf-pill-minor" class="font-bold">0</span>
+            </div>
+            <div class="bg-orange-500/10 border border-orange-500/20 py-1 rounded text-orange-400 font-mono">
+              <span class="block text-[9px] text-orange-500 uppercase">Major</span>
+              <span id="inf-pill-major" class="font-bold">0</span>
+            </div>
+            <div class="bg-rose-500/10 border border-rose-500/20 py-1 rounded text-rose-400 font-mono">
+              <span class="block text-[9px] text-rose-500 uppercase">Destr</span>
+              <span id="inf-pill-destroyed" class="font-bold">0</span>
+            </div>
+          </div>
         </div>
 
         <!-- Filter Controls -->
@@ -591,6 +758,10 @@
     let liveWeatherData = null;
     let currentRiskMode = "baseline"; // "baseline" or "weather"
     let selectedBuilding = null;
+    let satelliteOverlayLayer = null;
+    let preImageBase64 = null;
+    let postImageBase64 = null;
+    let lastInferenceResult = null;
 
     // Initialize Map with 100% Free Satellite Imagery
     function initMap() {
@@ -623,6 +794,7 @@
 
       loadInitialData();
       refreshLiveWeather();
+      checkModelStatus();
     }
 
     function switchBaseMap(type) {
@@ -1165,6 +1337,12 @@
         const checked = document.getElementById('toggle-relocation').checked;
         if (checked) map.addLayer(relocationGeoJsonLayer);
         else map.removeLayer(relocationGeoJsonLayer);
+      } else if (type === 'mask-overlay') {
+        const checked = document.getElementById('toggle-mask-overlay').checked;
+        if (satelliteOverlayLayer) {
+          if (checked) map.addLayer(satelliteOverlayLayer);
+          else map.removeLayer(satelliteOverlayLayer);
+        }
       }
     }
 
@@ -1179,6 +1357,7 @@
         activeBtn.className = "tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 bg-indigo-600 text-white shadow-md transition-all";
       }
       document.getElementById(`panel-${tabId}`).classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
     }
 
     function downloadCSVReport() {
@@ -1196,6 +1375,227 @@
 
     function downloadSummaryJSON() {
       window.open(`${API_BASE}/projects/${PROJECT_ID}/reports/json`, '_blank');
+    }
+
+
+    async function checkModelStatus() {
+      try {
+        const res = await fetch(`${API_BASE}/models/damage-assessment/status`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const badge = document.getElementById('model-status-badge');
+        const devLabel = document.getElementById('model-device-label');
+        const tag = document.getElementById('model-weights-tag');
+        const notice = document.getElementById('model-status-notice');
+
+        if (devLabel) devLabel.innerText = `PyTorch Engine: ${data.device.toUpperCase()}`;
+        if (tag) tag.innerText = data.weights_status;
+
+        if (data.weights_loaded) {
+          if (badge) {
+            badge.className = "text-[10px] font-mono px-2 py-0.5 rounded border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 font-semibold";
+            badge.innerText = "Model Active (Trained Weights)";
+          }
+          if (tag) {
+            tag.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+          }
+        } else {
+          if (badge) {
+            badge.className = "text-[10px] font-mono px-2 py-0.5 rounded border bg-amber-500/10 text-amber-400 border-amber-500/20 font-semibold";
+            badge.innerText = "Model Active (Untrained Demo)";
+          }
+          if (tag) {
+            tag.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20";
+          }
+        }
+
+        if (notice) notice.innerText = data.notice || data.message || "Pipeline ready.";
+      } catch (err) {
+        console.warn("Failed to query model status:", err);
+      }
+    }
+
+    async function loadSampleDisasterPair() {
+      try {
+        const res = await fetch(`${API_BASE}/samples/satellite-tiles`);
+        if (!res.ok) throw new Error("Failed to load sample tiles");
+        const data = await res.json();
+        preImageBase64 = data.pre_image_base64;
+        postImageBase64 = data.post_image_base64;
+
+        // Update Pre Tile UI
+        const preImg = document.getElementById('pre-tile-preview');
+        const preEmpty = document.getElementById('pre-tile-empty');
+        const preDims = document.getElementById('pre-tile-dims');
+        if (preImg) { preImg.src = preImageBase64; preImg.classList.remove('hidden'); }
+        if (preEmpty) preEmpty.classList.add('hidden');
+        if (preDims) preDims.innerText = "512x512 PNG";
+
+        // Update Post Tile UI
+        const postImg = document.getElementById('post-tile-preview');
+        const postEmpty = document.getElementById('post-tile-empty');
+        const postDims = document.getElementById('post-tile-dims');
+        if (postImg) { postImg.src = postImageBase64; postImg.classList.remove('hidden'); }
+        if (postEmpty) postEmpty.classList.add('hidden');
+        if (postDims) postDims.innerText = "512x512 PNG";
+
+        const btnText = document.getElementById('btn-run-infer-text');
+        if (btnText) btnText.innerText = "Run Siamese AI Damage Assessment (Sample Ready)";
+      } catch (err) {
+        alert("Could not load sample satellite tiles: " + err.message);
+      }
+    }
+
+    function handleTileUpload(event, type) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const b64 = e.target.result;
+        const img = new Image();
+        img.onload = function() {
+          const dimsText = `${img.naturalWidth}x${img.naturalHeight} ${file.type.split('/')[1]?.toUpperCase() || 'IMG'}`;
+          if (type === 'pre') {
+            preImageBase64 = b64;
+            const preview = document.getElementById('pre-tile-preview');
+            const empty = document.getElementById('pre-tile-empty');
+            const dims = document.getElementById('pre-tile-dims');
+            if (preview) { preview.src = b64; preview.classList.remove('hidden'); }
+            if (empty) empty.classList.add('hidden');
+            if (dims) dims.innerText = dimsText;
+          } else {
+            postImageBase64 = b64;
+            const preview = document.getElementById('post-tile-preview');
+            const empty = document.getElementById('post-tile-empty');
+            const dims = document.getElementById('post-tile-dims');
+            if (preview) { preview.src = b64; preview.classList.remove('hidden'); }
+            if (empty) empty.classList.add('hidden');
+            if (dims) dims.innerText = dimsText;
+          }
+        };
+        img.src = b64;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function runSatelliteInference() {
+      if (!preImageBase64 || !postImageBase64) {
+        alert("Please upload both Pre-Disaster and Post-Disaster satellite tiles, or click 'Load Benchmark Pair'.");
+        return;
+      }
+
+      const btn = document.getElementById('btn-run-inference');
+      const btnText = document.getElementById('btn-run-infer-text');
+      const originalText = btnText ? btnText.innerText : "Run Siamese AI Damage Assessment";
+
+      try {
+        if (btn) btn.disabled = true;
+        if (btnText) btnText.innerHTML = '<span class="animate-spin inline-block mr-1">⟳</span> Executing Siamese Neural Inference...';
+
+        const gsd = parseFloat(document.getElementById('inf-param-gsd').value) || 0.50;
+        const confThresh = parseFloat(document.getElementById('inf-param-conf').value) || 0.65;
+        const applyProj = document.getElementById('inf-param-apply').checked;
+
+        const payload = {
+          pre_image_base64: preImageBase64,
+          post_image_base64: postImageBase64,
+          confidence_threshold: confThresh,
+          meters_per_pixel: gsd,
+          origin_lat: 12.3375,
+          origin_lon: 75.8062,
+          apply_to_project: applyProj
+        };
+
+        const res = await fetch(`${API_BASE}/projects/${PROJECT_ID}/satellite-inference`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || `Server returned error ${res.status}`);
+        }
+
+        const data = await res.json();
+        lastInferenceResult = data;
+
+        // Reveal Inference Result Card
+        const resultCard = document.getElementById('card-inference-results');
+        if (resultCard) resultCard.classList.remove('hidden');
+
+        // Populate Segmentation Mask Preview
+        const maskImg = document.getElementById('inf-mask-preview-img');
+        if (maskImg && data.segmentation_mask_base64) {
+          maskImg.src = data.segmentation_mask_base64;
+        }
+
+        // Summary Statistics
+        const s = data.summary || {};
+        const counts = s.damage_breakdown || {};
+        document.getElementById('inf-res-total').innerText = s.total_buildings_detected ?? 0;
+        document.getElementById('inf-res-severe').innerText = s.severely_damaged_count ?? 0;
+        document.getElementById('inf-res-rate').innerText = `${s.damage_rate_percentage ?? 0}%`;
+        document.getElementById('inf-res-conf').innerText = `${((s.mean_confidence ?? 0) * 100).toFixed(1)}%`;
+
+        document.getElementById('inf-pill-undamaged').innerText = counts.undamaged ?? 0;
+        document.getElementById('inf-pill-minor').innerText = counts.minor_damage ?? 0;
+        document.getElementById('inf-pill-major').innerText = counts.major_damage ?? 0;
+        document.getElementById('inf-pill-destroyed').innerText = counts.destroyed ?? 0;
+
+        // If apply_to_project is checked, update map and UI
+        if (applyProj && (data.features || (data.geojson && data.geojson.features))) {
+          allBuildings = data.features || data.geojson.features;
+          renderBuildings(allBuildings);
+          await refreshProjectSummary();
+          updateFlaggedList();
+        }
+
+        // Add or update segmentation overlay on Leaflet map
+        if (data.segmentation_mask_base64 && data.bounding_box) {
+          const bbox = data.bounding_box;
+          const bounds = [[bbox.south, bbox.west], [bbox.north, bbox.east]];
+          if (satelliteOverlayLayer) {
+            map.removeLayer(satelliteOverlayLayer);
+          }
+          satelliteOverlayLayer = L.imageOverlay(data.segmentation_mask_base64, bounds, {
+            opacity: 0.75,
+            interactive: false
+          }).addTo(map);
+
+          // Ensure building footprints are on top for click interactivity
+          if (buildingsGeoJsonLayer) buildingsGeoJsonLayer.bringToFront();
+
+          map.fitBounds(bounds, { padding: [40, 40] });
+
+          const toggleBox = document.getElementById('toggle-mask-overlay');
+          if (toggleBox) toggleBox.checked = true;
+        }
+
+        if (window.lucide) lucide.createIcons();
+      } catch (err) {
+        alert("Satellite Inference Error: " + err.message);
+      } finally {
+        if (btn) btn.disabled = false;
+        if (btnText) btnText.innerText = originalText;
+      }
+    }
+
+    function toggleMaskOverlayOnMap() {
+      if (!satelliteOverlayLayer) {
+        alert("Please run damage inference first to generate a segmentation mask overlay.");
+        return;
+      }
+      const toggleBox = document.getElementById('toggle-mask-overlay');
+      if (map.hasLayer(satelliteOverlayLayer)) {
+        map.removeLayer(satelliteOverlayLayer);
+        if (toggleBox) toggleBox.checked = false;
+      } else {
+        satelliteOverlayLayer.addTo(map);
+        if (buildingsGeoJsonLayer) buildingsGeoJsonLayer.bringToFront();
+        if (toggleBox) toggleBox.checked = true;
+      }
     }
 
     window.addEventListener('DOMContentLoaded', () => {

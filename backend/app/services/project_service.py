@@ -6,6 +6,7 @@ Coordinates ML Inference, GIS Multi-Hazard Overlay, and TOPSIS Relocation Rankin
 import os
 import json
 import copy
+import base64
 from typing import Dict, List, Any, Optional
 import numpy as np
 
@@ -297,6 +298,65 @@ class ProjectDataStore:
 
     def get_relocation_sites(self) -> Dict[str, Any]:
         return self.screened_relocation_results
+
+    def run_satellite_damage_assessment(
+        self,
+        pre_image_base64: str,
+        post_image_base64: str,
+        confidence_threshold: float = 0.65,
+        meters_per_pixel: float = 0.50,
+        origin_lat: float = 12.3375,
+        origin_lon: float = 75.8062,
+        apply_to_project: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Coordinates full neural inference on satellite image tiles via DamageInferenceEngine.
+        """
+        from ml.src.inference.engine import inference_engine
+
+        result = inference_engine.run_inference_pipeline(
+            pre_image=pre_image_base64,
+            post_image=post_image_base64,
+            confidence_threshold=confidence_threshold,
+            meters_per_pixel=meters_per_pixel,
+            origin_lat_lon=(origin_lat, origin_lon),
+        )
+
+        if apply_to_project and result.get("features"):
+            self.buildings_data = result["features"]
+            # Recalculate relocation capacity with the newly inferred footprints
+            self.screened_relocation_results = self.relocation_engine.screen_and_rank_sites(
+                self.candidate_sites_data
+            )
+
+        return result
+
+    def get_model_status(self) -> Dict[str, Any]:
+        from ml.src.inference.engine import inference_engine
+        return inference_engine.get_model_status()
+
+    def get_sample_satellite_tiles(self) -> Dict[str, Any]:
+        pre_path = os.path.join(SAMPLE_DATA_DIR, "sample_pre_disaster.png")
+        post_path = os.path.join(SAMPLE_DATA_DIR, "sample_post_disaster.png")
+
+        pre_b64 = ""
+        post_b64 = ""
+
+        if os.path.exists(pre_path):
+            with open(pre_path, "rb") as f:
+                pre_b64 = f"data:image/png;base64,{base64.b64encode(f.read()).decode('utf-8')}"
+
+        if os.path.exists(post_path):
+            with open(post_path, "rb") as f:
+                post_b64 = f"data:image/png;base64,{base64.b64encode(f.read()).decode('utf-8')}"
+
+        return {
+            "pre_image_base64": pre_b64,
+            "post_image_base64": post_b64,
+            "meters_per_pixel": 0.50,
+            "origin_lat": 12.3375,
+            "origin_lon": 75.8062,
+        }
 
 
 # Singleton project store instance
