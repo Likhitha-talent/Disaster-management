@@ -81,6 +81,9 @@ class DamageInferenceEngine:
         self.damage_model = SiameseDamageUNet(in_channels=3, num_classes=4, base_filters=32)
 
         self.weights_loaded = False
+        self.calibration_measured = False
+        self.calibration_metrics: Optional[Dict[str, Any]] = None
+        self.checkpoint_metadata: Dict[str, Any] = {}
         self._load_weights_if_available()
 
         self.localization_model.to(self.device).eval()
@@ -93,36 +96,108 @@ class DamageInferenceEngine:
 
         if unet_exists and siamese_exists:
             try:
-                unet_ckpt = torch.load(self.unet_weights_path, map_location=self.device)
-                self.localization_model.load_state_dict(unet_ckpt.get("state_dict", unet_ckpt))
+                try:
+                    unet_ckpt = torch.load(self.unet_weights_path, map_location=self.device, weights_only=False)
+                except TypeError:
+                    unet_ckpt = torch.load(self.unet_weights_path, map_location=self.device)
 
-                siamese_ckpt = torch.load(self.siamese_weights_path, map_location=self.device)
-                self.damage_model.load_state_dict(siamese_ckpt.get("state_dict", siamese_ckpt))
+                if isinstance(unet_ckpt, dict) and "model_state_dict" in unet_ckpt:
+                    self.localization_model.load_state_dict(unet_ckpt["model_state_dict"])
+                elif isinstance(unet_ckpt, dict) and "state_dict" in unet_ckpt:
+                    self.localization_model.load_state_dict(unet_ckpt["state_dict"])
+                else:
+                    self.localization_model.load_state_dict(unet_ckpt)
+
+                try:
+                    siamese_ckpt = torch.load(self.siamese_weights_path, map_location=self.device, weights_only=False)
+                except TypeError:
+                    siamese_ckpt = torch.load(self.siamese_weights_path, map_location=self.device)
+                if isinstance(siamese_ckpt, dict) and "model_state_dict" in siamese_ckpt:
+                    self.damage_model.load_state_dict(siamese_ckpt["model_state_dict"])
+                    self.calibration_measured = bool(siamese_ckpt.get("calibration_measured", False))
+                    self.calibration_metrics = siamese_ckpt.get("calibration_metrics")
+                    self.checkpoint_metadata = {
+                        "epoch": siamese_ckpt.get("epoch"),
+                        "timestamp": siamese_ckpt.get("timestamp"),
+                        "validation_metrics": siamese_ckpt.get("validation_metrics"),
+                        "calibration_criteria_met": siamese_ckpt.get("calibration_criteria_met", False)
+                    }
+                elif isinstance(siamese_ckpt, dict) and "state_dict" in siamese_ckpt:
+                    self.damage_model.load_state_dict(siamese_ckpt["state_dict"])
+                    self.calibration_measured = False
+                    self.calibration_metrics = None
+                else:
+                    self.damage_model.load_state_dict(siamese_ckpt)
+                    self.calibration_measured = False
+                    self.calibration_metrics = None
 
                 self.weights_loaded = True
             except Exception as e:
                 self.weights_loaded = False
+                self.calibration_measured = False
+                self.calibration_metrics = None
                 print(f"[DamageInferenceEngine] Warning: Checkpoint loading failed: {e}. Falling back to baseline initialization.")
         else:
             self.weights_loaded = False
+            self.calibration_measured = False
+            self.calibration_metrics = None
 
     def get_model_status(self) -> Dict[str, Any]:
         """Returns detailed metadata regarding model architecture, device, and weights status"""
-        return {
+        if self.weights_loaded:
+            cal_metrics = self.calibration_metrics if isinstance(self.calibration_metrics, dict) else {}
+            is_cal = bool(cal_metrics.get("is_calibrated", False))
+            is_synth = bool(cal_metrics.get("is_synthetic_benchmark", False))
+            num_tiles = int(cal_metrics.get("num_tiles", 0))
+            ece = float(cal_metrics.get("ece", 1.0))
+
+            # Operational calibration certification strictly requires:
+            # 1. is_calibrated == True
+            # 2. Non-synthetic held-out imagery (is_synthetic_benchmark == False)
+            # 3. At least 50 held-out evaluation tiles (num_tiles >= 50)
+            # 4. ECE < 0.10
+            if self.calibration_measured and is_cal and (not is_synth) and (num_tiles >= 50) and (ece < 0.10):
+                weights_status = "CALIBRATED_CHECKPOINT"
+                notice = (
+                    f"Trained checkpoints loaded with empirical probability calibration verified on held-out disaster imagery "
+                    f"({num_tiles} evaluation tiles, ECE: {ece:.4f} < 0.10)."
+                )
+            else:
+                weights_status = "TRAINED_WEIGHTS_UNMEASURED_CALIBRATION"
+                reasons = cal_metrics.get("disqualification_reasons", [])
+                if reasons:
+                    notice = f"Trained checkpoints loaded from disk. Calibration uncertified: {'; '.join(reasons)}"
+                else:
+                    notice = (
+                        "Trained checkpoints loaded from disk. Probability calibration has not been empirically verified on >= 50 "
+                        "held-out real disaster tiles. Run 'python ml/evaluate.py --measure-calibration' to evaluate."
+                    )
+        else:
+            weights_status = "UNTRAINED_DEMO_INITIALIZATION"
+            notice = (
+                "Running in demonstration mode with baseline initialization. "
+                "For production use, place trained xView2/xBD PyTorch checkpoints (unet_localization.pth & siamese_damage.pth) in ml/weights/."
+            )
+
+        status_dict = {
             "model_version": self.model_version,
             "device": self.device,
             "tile_size": self.tile_size,
             "localization_architecture": "BuildingLocalizationUNet (Stage A: 4-level U-Net)",
             "damage_architecture": "SiameseDamageUNet (Stage B: Bi-temporal skip difference fusion)",
             "weights_loaded": self.weights_loaded,
-            "weights_status": "CALIBRATED_CHECKPOINT" if self.weights_loaded else "UNTRAINED_DEMO_INITIALIZATION",
+            "weights_status": weights_status,
+            "calibration_measured": self.calibration_measured,
             "weights_directory": self.weights_dir,
-            "notice": (
-                "Calibrated production weights loaded."
-                if self.weights_loaded
-                else "Running in demonstration mode with baseline initialization. For production use, place trained xView2/xBD PyTorch checkpoints (unet_localization.pth & siamese_damage.pth) in ml/weights/."
-            ),
+            "notice": notice,
         }
+
+        if self.calibration_metrics:
+            status_dict["calibration_metrics"] = self.calibration_metrics
+        if self.checkpoint_metadata:
+            status_dict["checkpoint_metadata"] = self.checkpoint_metadata
+
+        return status_dict
 
     def decode_image(self, image_input: Union[bytes, str, np.ndarray]) -> np.ndarray:
         """
