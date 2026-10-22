@@ -7,6 +7,8 @@ import os
 import sys
 import argparse
 import json
+from datetime import datetime
+from typing import Optional, Dict, Any
 import torch
 import numpy as np
 
@@ -18,7 +20,13 @@ if project_root not in sys.path:
 from torch.utils.data import DataLoader
 from ml.src.models.unet import BuildingLocalizationUNet
 from ml.src.models.siamese_unet import SiameseDamageUNet
-from ml.src.data.dataset import xBDDisasterDataset, scan_xbd_directory, create_reproducible_splits, DEFAULT_DATA_DIR
+from ml.src.data.dataset import (
+    xBDDisasterDataset,
+    scan_xbd_directory,
+    create_reproducible_splits,
+    detect_dataset_origin,
+    DEFAULT_DATA_DIR
+)
 from ml.src.training.trainer import CheckpointManager, DEFAULT_CHECKPOINT_DIR
 from ml.src.training.metrics import (
     compute_class_f1,
@@ -44,11 +52,87 @@ def parse_args():
                         help="Compute ECE, MCE, and Brier calibration metrics")
     parser.add_argument("--output-json", type=str, default=None,
                         help="Optional file path to persist evaluation results")
+    parser.add_argument("--overwrite", action="store_true", default=False,
+                        help="Allow overwriting existing evaluation JSON reports")
+    parser.add_argument("--splits-file", type=str, default=None,
+                        help="Optional explicit path to splits.json file to use for evaluation")
     return parser.parse_args()
+
+
+def resolve_output_path(
+    output_json: Optional[str],
+    checkpoint: str,
+    split: str,
+    model_type: str,
+    overwrite: bool = False
+) -> str:
+    """
+    Determines output report path and prevents unintended overwrites.
+
+    Requirements:
+      - If explicit output_json already exists and overwrite=False, raises FileExistsError.
+      - For the default output path, if it already exists and overwrite=False, appends a UTC timestamp suffix.
+      - If overwrite=True, permits overwriting either explicit or default path.
+    """
+    if output_json:
+        if os.path.exists(output_json) and not overwrite:
+            raise FileExistsError(
+                f"Output file '{output_json}' already exists. Pass --overwrite to permit overwriting."
+            )
+        return output_json
+
+    ckpt_dir = os.path.dirname(checkpoint) or "."
+    default_path = os.path.join(ckpt_dir, f"eval_{split}_{model_type}.json")
+    if os.path.exists(default_path) and not overwrite:
+        timestamp_suffix = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        candidate = os.path.join(ckpt_dir, f"eval_{split}_{model_type}_{timestamp_suffix}.json")
+        counter = 1
+        while os.path.exists(candidate):
+            candidate = os.path.join(ckpt_dir, f"eval_{split}_{model_type}_{timestamp_suffix}_{counter}.json")
+            counter += 1
+        return candidate
+
+    return default_path
+
+
+def resolve_splits_path(
+    checkpoint: str,
+    splits_file: Optional[str] = None
+) -> str:
+    """
+    Determines and verifies the split file path for evaluation.
+
+    Requirements:
+      - When splits_file is supplied, uses that exact file.
+      - Otherwise, requires 'splits.json' in the checkpoint directory.
+      - If the required file is missing, raises FileNotFoundError.
+        Does not fall back to data_dir or generate replacement splits.
+    """
+    if splits_file:
+        if not os.path.exists(splits_file):
+            raise FileNotFoundError(
+                f"Explicitly specified split file does not exist: '{splits_file}'"
+            )
+        return splits_file
+
+    ckpt_dir = os.path.dirname(checkpoint) or DEFAULT_CHECKPOINT_DIR
+    default_splits_file = os.path.join(ckpt_dir, "splits.json")
+    if not os.path.exists(default_splits_file):
+        raise FileNotFoundError(
+            f"Required split file 'splits.json' not found in checkpoint directory: '{ckpt_dir}'. "
+            f"Evaluation requires the exact split used during training. Replacement splits are not generated."
+        )
+    return default_splits_file
 
 
 def main():
     args = parse_args()
+
+    # Early check for explicit output overwrite protection
+    if args.output_json and os.path.exists(args.output_json) and not args.overwrite:
+        print(f"[ERROR] Output file '{args.output_json}' already exists. Pass --overwrite to permit overwriting.")
+        sys.exit(1)
+
     device = args.device or ("cuda" if torch.cuda.is_available() else "cpu")
 
     print("=" * 70)
@@ -67,8 +151,17 @@ def main():
         print(f"[ERROR] No disaster tile pairs found in {args.data_dir}")
         sys.exit(1)
 
-    ckpt_dir = os.path.dirname(args.checkpoint) or DEFAULT_CHECKPOINT_DIR
-    splits = create_reproducible_splits(samples, output_dir=ckpt_dir)
+    try:
+        splits_path = resolve_splits_path(args.checkpoint, splits_file=args.splits_file)
+    except FileNotFoundError as e:
+        print(f"[ERROR] {e}")
+        sys.exit(1)
+
+    try:
+        splits = create_reproducible_splits(samples, output_dir=splits_path)
+    except ValueError as e:
+        print(f"[ERROR] Split file validation failed for '{splits_path}': {e}")
+        sys.exit(1)
     eval_samples = splits.get(args.split, [])
 
     if not eval_samples:
@@ -178,19 +271,12 @@ def main():
         if args.measure_calibration and all_probs:
             probs_arr = np.concatenate(all_probs, axis=0)
 
-            # Detect synthetic benchmark status
-            manifest_path = os.path.join(args.data_dir, "dataset_manifest.json")
-            is_synthetic = False
-            if os.path.exists(manifest_path):
-                try:
-                    with open(manifest_path, "r", encoding="utf-8") as f:
-                        mani = json.load(f)
-                    if mani.get("dataset_type") == "synthetic_benchmark" or mani.get("is_synthetic", False):
-                        is_synthetic = True
-                except Exception:
-                    pass
-            if "benchmark" in args.data_dir.lower() or "synthetic" in args.data_dir.lower():
-                is_synthetic = True
+            # Detect dataset origin using unified detection logic
+            origin_info = detect_dataset_origin(args.data_dir)
+            is_synthetic = bool(origin_info.get("is_synthetic", False))
+            is_unknown = bool(origin_info.get("is_unknown_origin", False))
+            is_op = bool(origin_info.get("is_operational", False))
+            denial_reason = origin_info.get("disqualification_reason")
 
             cal_metrics = compute_calibration_metrics(
                 probs_arr,
@@ -198,14 +284,18 @@ def main():
                 num_bins=10,
                 num_tiles=len(eval_samples),
                 min_tiles_for_certification=50,
-                is_synthetic_benchmark=is_synthetic
+                is_synthetic_benchmark=is_synthetic,
+                is_unknown_origin=is_unknown,
+                is_operational=is_op,
+                provenance_denial_reason=denial_reason
             )
             results["calibration"] = cal_metrics
 
             print("\n" + "-" * 70)
             print("  PROBABILITY CALIBRATION DIAGNOSTICS")
             print("-" * 70)
-            print(f"  Evaluated Tiles:                  {len(eval_samples)} ({'Synthetic Benchmark' if is_synthetic else 'Operational Imagery'})")
+            origin_label = "Synthetic Benchmark" if is_synthetic else ("Operational Imagery (Verified)" if is_op else "Unverified / Unknown Provenance")
+            print(f"  Evaluated Tiles:                  {len(eval_samples)} ({origin_label})")
             print(f"  Evaluated Pixels / Footprints:    {cal_metrics['num_samples']}")
             print(f"  Expected Calibration Error (ECE): {cal_metrics['ece']:.4f}")
             print(f"  Maximum Calibration Error (MCE):  {cal_metrics['mce']:.4f}")
@@ -219,8 +309,19 @@ def main():
                     print(f"    - {reason}")
             print("-" * 70)
 
-    # Save output if requested
-    out_file = args.output_json or os.path.join(os.path.dirname(args.checkpoint), f"eval_{args.split}_{model_type}.json")
+    # Save output report
+    try:
+        out_file = resolve_output_path(
+            output_json=args.output_json,
+            checkpoint=args.checkpoint,
+            split=args.split,
+            model_type=model_type,
+            overwrite=args.overwrite
+        )
+    except FileExistsError as e:
+        print(f"[ERROR] {e}")
+        sys.exit(1)
+
     with open(out_file, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
     print(f"\n[OK] Evaluation report written to: {out_file}")

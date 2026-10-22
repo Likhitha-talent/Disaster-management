@@ -148,15 +148,17 @@ class DamageInferenceEngine:
             cal_metrics = self.calibration_metrics if isinstance(self.calibration_metrics, dict) else {}
             is_cal = bool(cal_metrics.get("is_calibrated", False))
             is_synth = bool(cal_metrics.get("is_synthetic_benchmark", False))
+            is_unknown = bool(cal_metrics.get("is_unknown_origin", False))
+            is_op = bool(cal_metrics.get("is_operational", False))
             num_tiles = int(cal_metrics.get("num_tiles", 0))
             ece = float(cal_metrics.get("ece", 1.0))
 
             # Operational calibration certification strictly requires:
             # 1. is_calibrated == True
-            # 2. Non-synthetic held-out imagery (is_synthetic_benchmark == False)
+            # 2. Non-synthetic, verified operational imagery (is_synthetic == False and is_unknown == False and is_operational == True)
             # 3. At least 50 held-out evaluation tiles (num_tiles >= 50)
             # 4. ECE < 0.10
-            if self.calibration_measured and is_cal and (not is_synth) and (num_tiles >= 50) and (ece < 0.10):
+            if self.calibration_measured and is_cal and (not is_synth) and (not is_unknown) and is_op and (num_tiles >= 50) and (ece < 0.10):
                 weights_status = "CALIBRATED_CHECKPOINT"
                 notice = (
                     f"Trained checkpoints loaded with empirical probability calibration verified on held-out disaster imagery "

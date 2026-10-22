@@ -292,25 +292,83 @@ def create_reproducible_splits(
     data leakage between train, validation, and test sets.
     If splits.json already exists in output_dir, loads and returns it to guarantee exact reproducibility.
     """
-    os.makedirs(output_dir, exist_ok=True)
-    splits_file = os.path.join(output_dir, "splits.json")
+    if os.path.isfile(output_dir) or output_dir.endswith(".json"):
+        splits_file = output_dir
+        os.makedirs(os.path.dirname(output_dir) or ".", exist_ok=True)
+    else:
+        os.makedirs(output_dir, exist_ok=True)
+        splits_file = os.path.join(output_dir, "splits.json")
 
     # Load existing split if present and valid
     if os.path.exists(splits_file) and not force_recreate:
         try:
             with open(splits_file, "r", encoding="utf-8") as f:
                 saved = json.load(f)
-            # Reconstruct sample mappings
-            lookup = {s["pair_id"]: s for s in samples}
-            splits = {"train": [], "val": [], "test": []}
-            for split_name in ["train", "val", "test"]:
-                for pid in saved.get(split_name, []):
-                    if pid in lookup:
-                        splits[split_name].append(lookup[pid])
-            if all(len(splits[k]) > 0 for k in splits):
-                return splits
-        except Exception:
-            pass
+        except Exception as e:
+            raise ValueError(f"Failed to read existing splits file '{splits_file}': {e}") from e
+
+        if not isinstance(saved, dict):
+            raise ValueError(f"Invalid split structure in '{splits_file}': root must be a JSON object.")
+
+        required_splits = ["train", "val", "test"]
+        for split_name in required_splits:
+            if split_name not in saved:
+                raise ValueError(
+                    f"Invalid split structure in '{splits_file}': missing required split partition '{split_name}'."
+                )
+            if not isinstance(saved[split_name], list):
+                raise ValueError(
+                    f"Invalid split structure in '{splits_file}': partition '{split_name}' must be a list of sample IDs."
+                )
+            if len(saved[split_name]) == 0:
+                raise ValueError(
+                    f"Invalid split structure in '{splits_file}': partition '{split_name}' is empty."
+                )
+            for pid in saved[split_name]:
+                if not isinstance(pid, str) or not pid.strip():
+                    raise ValueError(
+                        f"Invalid sample ID {repr(pid)} in partition '{split_name}' in '{splits_file}': "
+                        f"ID must be a string containing at least one non-whitespace character."
+                    )
+
+        # Check for duplicate IDs within partitions and across partitions
+        seen_pids = set()
+        for split_name in required_splits:
+            partition_pids = saved[split_name]
+            # Check within partition
+            if len(partition_pids) != len(set(partition_pids)):
+                duplicates = sorted(list(set(pid for pid in partition_pids if partition_pids.count(pid) > 1)))
+                raise ValueError(
+                    f"Duplicate sample IDs detected within '{split_name}' partition in '{splits_file}': {duplicates}"
+                )
+            # Check across partitions
+            overlap = seen_pids.intersection(set(partition_pids))
+            if overlap:
+                raise ValueError(
+                    f"Duplicate sample IDs detected across partitions in '{splits_file}': overlapping IDs {sorted(list(overlap))}"
+                )
+            seen_pids.update(partition_pids)
+
+        # Validate that every saved ID exists in the scanned dataset
+        lookup = {s["pair_id"]: s for s in samples}
+        all_saved_ids = []
+        for split_name in required_splits:
+            all_saved_ids.extend(saved[split_name])
+
+        missing_ids = [pid for pid in all_saved_ids if pid not in lookup]
+        if missing_ids:
+            raise ValueError(
+                f"Missing {len(missing_ids)} sample ID(s) from scanned dataset referenced in '{splits_file}': "
+                f"{sorted(missing_ids)}"
+            )
+
+        # Reconstruct sample mappings preserving partition order
+        splits = {"train": [], "val": [], "test": []}
+        for split_name in required_splits:
+            for pid in saved[split_name]:
+                splits[split_name].append(lookup[pid])
+
+        return splits
 
     def _get_disaster(s: Dict[str, str]) -> str:
         d = s.get("disaster")
@@ -321,9 +379,12 @@ def create_reproducible_splits(
             return pid.split("_")[0]
         return "general"
 
+    # Sort samples deterministically before grouping
+    sorted_samples = sorted(samples, key=lambda s: s.get("pair_id", ""))
+
     # Group samples by disaster event
     disaster_groups: Dict[str, List[Dict[str, str]]] = {}
-    for s in samples:
+    for s in sorted_samples:
         d_name = _get_disaster(s)
         disaster_groups.setdefault(d_name, []).append(s)
 
@@ -432,6 +493,119 @@ def create_reproducible_splits(
         "train": train_samples,
         "val": val_samples,
         "test": test_samples
+    }
+
+
+def detect_dataset_origin(data_dir: str) -> Dict[str, Any]:
+    """
+    Inspects dataset directory and manifest to determine dataset type and origin.
+    Prevents synthetic or unknown-origin datasets from silently being treated as operational.
+    Self-declared 'operational' labels or self-declared 'provenance_verified' fields in a local manifest
+    without an independent, trusted verification mechanism cannot confer verified operational status.
+    Until an independent, trusted verification mechanism exists, all operational claims are classified
+    as unverified provenance and denied operational calibration certification.
+
+    Returns dict with:
+      - is_synthetic: bool (True if synthetic benchmark)
+      - is_unknown_origin: bool (True if origin is unverified/unknown)
+      - is_operational: bool (True ONLY if verified operational with external provenance)
+      - dataset_type: str ("synthetic_benchmark", "unverified_provenance", or "unknown_origin")
+      - manifest_found: bool
+      - manifest: Dict[str, Any]
+      - disqualification_reason: str
+      - notice: str
+    """
+    manifest_path = os.path.join(data_dir, "dataset_manifest.json")
+    manifest: Dict[str, Any] = {}
+    manifest_found = False
+    manifest_malformed = False
+    malformed_detail = ""
+
+    if os.path.exists(manifest_path):
+        manifest_found = True
+        try:
+            with open(manifest_path, "r", encoding="utf-8") as f:
+                raw_manifest = json.load(f)
+            if isinstance(raw_manifest, dict):
+                manifest = raw_manifest
+            else:
+                manifest_malformed = True
+                malformed_detail = f"root JSON value must be a dictionary, but found {type(raw_manifest).__name__}"
+                manifest = {}
+        except Exception as e:
+            manifest_malformed = True
+            malformed_detail = f"manifest could not be parsed as valid JSON: {e}"
+            manifest = {}
+
+    norm_dir = os.path.normpath(data_dir).lower()
+    dir_has_benchmark = ("benchmark" in norm_dir or "synthetic" in norm_dir or "smoke" in norm_dir)
+
+    if manifest_malformed:
+        return {
+            "is_synthetic": dir_has_benchmark,
+            "is_unknown_origin": True,
+            "is_operational": False,
+            "dataset_type": "synthetic_benchmark" if dir_has_benchmark else "unknown_origin",
+            "manifest_found": True,
+            "manifest": {},
+            "disqualification_reason": f"Dataset manifest is malformed ({malformed_detail}); origin cannot be verified.",
+            "notice": "Dataset manifest is malformed. Operational calibration cannot be certified."
+        }
+
+    is_explicit_synthetic = (
+        manifest.get("is_synthetic") is True
+        or manifest.get("dataset_type") == "synthetic_benchmark"
+        or manifest.get("status") == "BENCHMARK_VERIFICATION_TILES"
+    )
+
+    if is_explicit_synthetic or dir_has_benchmark:
+        return {
+            "is_synthetic": True,
+            "is_unknown_origin": False,
+            "is_operational": False,
+            "dataset_type": "synthetic_benchmark",
+            "manifest_found": manifest_found,
+            "manifest": manifest,
+            "disqualification_reason": "Evaluation conducted on synthetic benchmark dataset; synthetic data cannot qualify for operational calibration certification.",
+            "notice": "Identified as synthetic benchmark dataset. Operational calibration cannot be certified on synthetic data."
+        }
+
+    # Inspect manifest claims for operational or verified provenance.
+    # Note: Local manifest fields (e.g., 'provenance_verified': true, 'provenance_source': '...',
+    # or 'dataset_type': 'operational') are self-declared. Without an independent, trusted
+    # verification mechanism (e.g. cryptographic attestation, trusted digital signature, or
+    # checksum verification against an official trusted registry), self-declared attributes
+    # cannot serve as proof of genuine operational data provenance.
+    claims_verified_provenance = (
+        manifest.get("provenance_verified") is True
+        or bool(manifest.get("provenance_source"))
+    )
+    claims_operational = manifest.get("dataset_type") in (
+        "operational", "xbd_operational", "real_world", "verified_operational"
+    )
+
+    if manifest_found and (claims_verified_provenance or claims_operational):
+        return {
+            "is_synthetic": False,
+            "is_unknown_origin": True,
+            "is_operational": False,
+            "dataset_type": "unverified_provenance",
+            "manifest_found": True,
+            "manifest": manifest,
+            "disqualification_reason": "Dataset manifest claims verified operational provenance, but independent trusted provenance verification is not yet implemented. Self-declared labels cannot confer operational calibration certification.",
+            "notice": "Dataset provenance is unverified. Operational calibration certification requires independently verified disaster imagery."
+        }
+
+    # Unknown origin (manifest missing or uncertified)
+    return {
+        "is_synthetic": False,
+        "is_unknown_origin": True,
+        "is_operational": False,
+        "dataset_type": "unknown_origin",
+        "manifest_found": manifest_found,
+        "manifest": manifest,
+        "disqualification_reason": "Dataset origin is unverified or unknown; operational calibration requires verified operational disaster imagery.",
+        "notice": "Dataset origin is unverified or unknown. Operational calibration cannot be certified."
     }
 
 
@@ -564,6 +738,8 @@ def create_verified_benchmark_subset(
     with open(manifest_path, "w", encoding="utf-8") as f:
         json.dump({
             "dataset_name": "xBD-Compatible Disaster Benchmark Subset",
+            "dataset_type": "synthetic_benchmark",
+            "is_synthetic": True,
             "status": "BENCHMARK_VERIFICATION_TILES",
             "licensing": "CC BY-NC 4.0 compatible structure",
             "tile_count": len(samples),

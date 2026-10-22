@@ -159,7 +159,10 @@ def compute_calibration_metrics(
     min_samples_for_certification: int = 50,
     num_tiles: Optional[int] = None,
     min_tiles_for_certification: int = 50,
-    is_synthetic_benchmark: bool = False
+    is_synthetic_benchmark: bool = False,
+    is_unknown_origin: bool = False,
+    is_operational: bool = False,
+    provenance_denial_reason: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Calculates calibration metrics for confidence estimation:
@@ -167,10 +170,14 @@ def compute_calibration_metrics(
       - Maximum Calibration Error (MCE)
       - Multi-class Brier Score: Mean squared error of probabilities vs one-hot targets
       - is_calibrated: True ONLY IF ECE < ece_threshold, sample size is at least 50
-        genuinely held-out disaster tiles, and data is NOT from a synthetic benchmark.
+        genuinely held-out disaster tiles, and data is verified operational (NOT synthetic
+        and NOT unknown-origin).
     """
     p_arr = _to_numpy(probs)
     t_arr = _to_numpy(targets).astype(np.int64)
+
+    # Sanitize probabilities against NaN or Inf values
+    p_arr = np.nan_to_num(p_arr, nan=0.0, posinf=1.0, neginf=0.0)
 
     # Flatten spatial dimensions if needed: (N, C)
     if p_arr.ndim == 4:  # (B, C, H, W)
@@ -198,6 +205,8 @@ def compute_calibration_metrics(
             "num_samples": 0,
             "num_tiles": num_tiles or 0,
             "is_synthetic_benchmark": is_synthetic_benchmark,
+            "is_unknown_origin": is_unknown_origin,
+            "is_operational": is_operational,
             "bins": []
         }
 
@@ -244,7 +253,14 @@ def compute_calibration_metrics(
     # Strict audit certification validation
     disqualification_reasons = []
     if is_synthetic_benchmark:
-        disqualification_reasons.append("Evaluation conducted on synthetic benchmark dataset; operational calibration cannot be certified on synthetic data.")
+        disqualification_reasons.append(
+            provenance_denial_reason or "Evaluation conducted on synthetic benchmark dataset; operational calibration cannot be certified on synthetic data."
+        )
+    elif is_unknown_origin or not is_operational:
+        disqualification_reasons.append(
+            provenance_denial_reason or "Dataset origin is unverified or lacks verified operational provenance evidence; self-declared operational labels do not confer calibration certification."
+        )
+
     if num_tiles is not None and num_tiles < min_tiles_for_certification:
         disqualification_reasons.append(f"Evaluated sample volume ({num_tiles} tiles) is below the minimum operational certification threshold of {min_tiles_for_certification} held-out tiles.")
     if n_samples < min_samples_for_certification:
@@ -269,6 +285,8 @@ def compute_calibration_metrics(
         "num_samples": n_samples,
         "num_tiles": num_tiles or 0,
         "is_synthetic_benchmark": is_synthetic_benchmark,
+        "is_unknown_origin": is_unknown_origin,
+        "is_operational": is_operational,
         "bins": bin_details
     }
 

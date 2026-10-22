@@ -24,7 +24,13 @@ from torch.utils.data import DataLoader
 from ml.src.models.unet import BuildingLocalizationUNet
 from ml.src.models.siamese_unet import SiameseDamageUNet
 from ml.src.models.losses import CombinedDamageLoss, DiceLoss
-from ml.src.data.dataset import xBDDisasterDataset, scan_xbd_directory, create_reproducible_splits, DEFAULT_DATA_DIR
+from ml.src.data.dataset import (
+    xBDDisasterDataset,
+    scan_xbd_directory,
+    create_reproducible_splits,
+    detect_dataset_origin,
+    DEFAULT_DATA_DIR
+)
 from ml.src.training.metrics import (
     compute_class_f1,
     compute_harmonic_mean_f1,
@@ -302,7 +308,12 @@ class DamageTrainer:
 
         return total_loss / max(count, 1)
 
-    def evaluate(self, dataloader: DataLoader, measure_calibration: bool = True) -> Dict[str, Any]:
+    def evaluate(
+        self,
+        dataloader: DataLoader,
+        measure_calibration: bool = True,
+        dataset_origin_info: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         self.model.eval()
         total_loss = 0.0
         all_preds = []
@@ -347,7 +358,29 @@ class DamageTrainer:
 
         if measure_calibration and all_probs:
             probs_arr = np.concatenate(all_probs, axis=0)
-            cal_res = compute_calibration_metrics(probs_arr, targets_arr, num_bins=10)
+            # Obtain tile count directly from evaluated dataset
+            num_tiles = len(dataloader.dataset) if hasattr(dataloader, "dataset") and hasattr(dataloader.dataset, "__len__") else 0
+
+            # Determine dataset provenance
+            if dataset_origin_info is None:
+                dataset_origin_info = detect_dataset_origin(self.config.data_dir)
+
+            is_synthetic = bool(dataset_origin_info.get("is_synthetic", False))
+            is_unknown = bool(dataset_origin_info.get("is_unknown_origin", False))
+            is_op = bool(dataset_origin_info.get("is_operational", False))
+            denial_reason = dataset_origin_info.get("disqualification_reason")
+
+            cal_res = compute_calibration_metrics(
+                probs_arr,
+                targets_arr,
+                num_bins=10,
+                num_tiles=num_tiles,
+                min_tiles_for_certification=50,
+                is_synthetic_benchmark=is_synthetic,
+                is_unknown_origin=is_unknown,
+                is_operational=is_op,
+                provenance_denial_reason=denial_reason
+            )
             metrics["calibration"] = cal_res
 
         return metrics
@@ -357,11 +390,21 @@ class DamageTrainer:
         best_metrics = {}
         saved_path = ""
 
+        # Validate dataset origin upfront
+        origin_info = detect_dataset_origin(self.config.data_dir)
+        dataset_info["origin"] = origin_info.get("dataset_type")
+        dataset_info["is_synthetic"] = origin_info.get("is_synthetic")
+        dataset_info["is_unknown_origin"] = origin_info.get("is_unknown_origin")
+
         history = []
         for epoch in range(1, self.config.epochs + 1):
             t0 = time.time()
             train_loss = self.train_epoch(train_loader)
-            val_metrics = self.evaluate(val_loader, measure_calibration=self.config.measure_calibration)
+            val_metrics = self.evaluate(
+                val_loader,
+                measure_calibration=self.config.measure_calibration,
+                dataset_origin_info=origin_info
+            )
             elapsed = time.time() - t0
 
             h_f1 = val_metrics["harmonic_mean_f1"]

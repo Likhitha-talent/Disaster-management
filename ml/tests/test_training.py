@@ -4,6 +4,7 @@ Reproducible Training Engine, and Checkpoint Calibration Integrity
 """
 
 import os
+import sys
 import json
 import tempfile
 import pytest
@@ -17,7 +18,8 @@ from ml.src.data.dataset import (
     apply_synchronized_augmentations,
     create_reproducible_splits,
     xBDDisasterDataset,
-    create_verified_benchmark_subset
+    create_verified_benchmark_subset,
+    detect_dataset_origin
 )
 from ml.src.training.metrics import (
     compute_confusion_matrix,
@@ -210,7 +212,7 @@ def test_ece_calibration_computation():
 
     cal_metrics = compute_calibration_metrics(
         probs_cal, targets_cal, num_bins=10, min_samples_for_certification=50,
-        num_tiles=60, is_synthetic_benchmark=False
+        num_tiles=60, is_synthetic_benchmark=False, is_unknown_origin=False, is_operational=True
     )
     assert cal_metrics["num_samples"] == 100
     assert cal_metrics["num_tiles"] == 60
@@ -238,6 +240,7 @@ def test_calibration_certification_strict_audit_rejections():
     """
     Verify strict audit rules for calibration certification:
       - Synthetic benchmark data must NEVER be certified as operational calibration
+      - Unknown-origin data must NEVER be certified as operational calibration
       - Evaluation with < 50 genuinely held-out tiles must be rejected
       - ECE >= 0.10 must be rejected
     """
@@ -263,6 +266,26 @@ def test_calibration_certification_strict_audit_rejections():
     res_high_ece = compute_calibration_metrics(probs_bad, targets_bad, num_tiles=60, is_synthetic_benchmark=False)
     assert res_high_ece["is_calibrated"] is False
     assert any("exceeds the 0.10" in r.lower() for r in res_high_ece["disqualification_reasons"])
+
+    # Case D: Unknown-origin dataset -> REJECTED
+    res_unknown = compute_calibration_metrics(probs, targets, num_tiles=60, is_synthetic_benchmark=False, is_unknown_origin=True)
+    assert res_unknown["is_calibrated"] is False
+    assert any("origin is unverified or lacks verified operational provenance" in r.lower() for r in res_unknown["disqualification_reasons"])
+
+    # Case E: Self-declared operational status without verified provenance evidence -> REJECTED
+    res_unverified_claim = compute_calibration_metrics(
+        probs, targets, num_tiles=60, is_synthetic_benchmark=False, is_unknown_origin=True, is_operational=False,
+        provenance_denial_reason="Dataset manifest contains self-declared operational status but lacks independently verified provenance evidence."
+    )
+    assert res_unverified_claim["is_calibrated"] is False
+    assert any("self-declared operational status" in r.lower() for r in res_unverified_claim["disqualification_reasons"])
+
+    # Case F: Genuine verified operational dataset with >= 50 tiles and ECE < 0.10 -> CERTIFIED
+    res_op = compute_calibration_metrics(
+        probs, targets, num_tiles=60, is_synthetic_benchmark=False, is_unknown_origin=False, is_operational=True
+    )
+    assert res_op["is_calibrated"] is True
+    assert res_op["certification_status"] == "CERTIFIED_CALIBRATED"
 
 
 def test_metrics_edge_cases():
@@ -477,6 +500,8 @@ def test_inference_engine_checkpoint_status_integrity(tmp_path):
             "brier_score": 0.052,
             "is_calibrated": True,
             "is_synthetic_benchmark": False,
+            "is_unknown_origin": False,
+            "is_operational": True,
             "num_tiles": 60,
             "num_samples": 500,
             "bins": [{"bin_idx": 0, "calibration_gap": 0.03}]
@@ -489,3 +514,566 @@ def test_inference_engine_checkpoint_status_integrity(tmp_path):
     assert status_calibrated["weights_loaded"] is True
     assert status_calibrated["weights_status"] == "CALIBRATED_CHECKPOINT"
     assert status_calibrated["calibration_metrics"]["ece"] == 0.042
+
+
+def test_detect_dataset_origin_manifest_parsing(tmp_path):
+    """
+    Verifies dataset origin detection across:
+      1. Synthetic benchmark manifest (explicit fields)
+      2. Missing manifest / unknown origin (refuses to assume real)
+      3. Manifest with self-declared operational label but lacking verified provenance evidence
+      4. Verified operational manifest with external provenance evidence
+      5. Directory path heuristics
+    """
+    # 1. Synthetic manifest
+    synth_dir = os.path.join(tmp_path, "synth_dataset")
+    os.makedirs(synth_dir, exist_ok=True)
+    with open(os.path.join(synth_dir, "dataset_manifest.json"), "w", encoding="utf-8") as f:
+        json.dump({
+            "dataset_name": "xBD Benchmark",
+            "dataset_type": "synthetic_benchmark",
+            "is_synthetic": True,
+            "status": "BENCHMARK_VERIFICATION_TILES"
+        }, f)
+    res_synth = detect_dataset_origin(synth_dir)
+    assert res_synth["is_synthetic"] is True
+    assert res_synth["is_unknown_origin"] is False
+    assert res_synth["is_operational"] is False
+    assert res_synth["dataset_type"] == "synthetic_benchmark"
+
+    # 2. Unknown origin: directory without manifest
+    unknown_dir = os.path.join(tmp_path, "mystery_dataset")
+    os.makedirs(unknown_dir, exist_ok=True)
+    res_unknown = detect_dataset_origin(unknown_dir)
+    assert res_unknown["is_synthetic"] is False
+    assert res_unknown["is_unknown_origin"] is True
+    assert res_unknown["is_operational"] is False
+    assert res_unknown["dataset_type"] == "unknown_origin"
+
+    # 3. Manifest claiming operational without verified evidence -> UNVERIFIED PROVENANCE
+    claimed_op_dir = os.path.join(tmp_path, "claimed_operational_dataset")
+    os.makedirs(claimed_op_dir, exist_ok=True)
+    with open(os.path.join(claimed_op_dir, "dataset_manifest.json"), "w", encoding="utf-8") as f:
+        json.dump({
+            "dataset_name": "Self-Declared Operational Data",
+            "dataset_type": "operational",
+            "is_synthetic": False
+        }, f)
+    res_claimed = detect_dataset_origin(claimed_op_dir)
+    assert res_claimed["is_synthetic"] is False
+    assert res_claimed["is_unknown_origin"] is True
+    assert res_claimed["is_operational"] is False
+    assert res_claimed["dataset_type"] == "unverified_provenance"
+    assert "Self-declared labels cannot confer" in res_claimed["disqualification_reason"]
+
+    # 4. Manifest claiming verified provenance in local JSON -> UNVERIFIED PROVENANCE
+    # Local JSON claims cannot confer verified operational status without an independent trusted verification mechanism
+    op_dir = os.path.join(tmp_path, "real_xbd_dataset")
+    os.makedirs(op_dir, exist_ok=True)
+    with open(os.path.join(op_dir, "dataset_manifest.json"), "w", encoding="utf-8") as f:
+        json.dump({
+            "dataset_name": "Official xView2 Challenge Dataset",
+            "dataset_type": "operational",
+            "is_synthetic": False,
+            "provenance_verified": True,
+            "provenance_source": "Official-xView2-Maxar-Registry"
+        }, f)
+    res_op = detect_dataset_origin(op_dir)
+    assert res_op["is_synthetic"] is False
+    assert res_op["is_unknown_origin"] is True
+    assert res_op["is_operational"] is False
+    assert res_op["dataset_type"] == "unverified_provenance"
+    assert "independent trusted" in res_op["disqualification_reason"].lower()
+
+    # 5. Path heuristic: directory name containing 'benchmark' without manifest
+    bench_dir = os.path.join(tmp_path, "custom_benchmark_data")
+    os.makedirs(bench_dir, exist_ok=True)
+    res_bench = detect_dataset_origin(bench_dir)
+    assert res_bench["is_synthetic"] is True
+    assert res_bench["is_operational"] is False
+
+
+def test_damage_trainer_evaluate_calibration_exact_tile_count(tmp_path):
+    """
+    Verifies DamageTrainer.evaluate() obtains tile count from dataloader.dataset
+    and correctly flags synthetic datasets from self.config.data_dir manifest.
+    """
+    set_reproducible_seed(42)
+    dataset_dir = os.path.join(tmp_path, "synth_bench")
+    samples = create_verified_benchmark_subset(target_dir=dataset_dir, num_pairs=3, tile_size=64, seed=42)
+
+    val_ds = xBDDisasterDataset(samples, tile_size=64, augment=False)
+    assert len(val_ds) == 3
+
+    val_loader = DataLoader(val_ds, batch_size=2, shuffle=False)
+
+    config = TrainingConfig(
+        data_dir=dataset_dir,
+        checkpoint_dir=str(tmp_path),
+        epochs=1,
+        batch_size=2,
+        tile_size=64,
+        seed=42
+    )
+
+    trainer = DamageTrainer(config)
+    metrics = trainer.evaluate(val_loader, measure_calibration=True)
+
+    cal = metrics.get("calibration")
+    assert cal is not None
+    # Verify tile count is exactly 3 (from dataset, not batches or pixels)
+    assert cal["num_tiles"] == 3
+    # Pixel count is 3 * 64 * 64 = 12288
+    assert cal["num_samples"] == 12288
+    assert cal["num_tiles"] != cal["num_samples"]
+    # Synthetic benchmark must be flagged and uncertified
+    assert cal["is_synthetic_benchmark"] is True
+    assert cal["is_calibrated"] is False
+    assert any("synthetic benchmark" in r.lower() for r in cal["disqualification_reasons"])
+
+
+def test_saved_split_validation_missing_ids(tmp_path):
+    """
+    Verify create_reproducible_splits raises ValueError when existing splits.json
+    references sample IDs not present in the scanned dataset.
+    """
+    samples = [
+        {"pair_id": "tile_001", "pre_img_path": "", "post_img_path": ""},
+        {"pair_id": "tile_002", "pre_img_path": "", "post_img_path": ""},
+        {"pair_id": "tile_003", "pre_img_path": "", "post_img_path": ""}
+    ]
+    splits_file = os.path.join(tmp_path, "splits.json")
+    with open(splits_file, "w", encoding="utf-8") as f:
+        json.dump({
+            "train": ["tile_001"],
+            "val": ["tile_002"],
+            "test": ["tile_missing_999"]
+        }, f)
+
+    with pytest.raises(ValueError) as excinfo:
+        create_reproducible_splits(samples, output_dir=str(tmp_path))
+
+    assert "Missing 1 sample ID(s)" in str(excinfo.value)
+    assert "tile_missing_999" in str(excinfo.value)
+
+
+def test_saved_split_validation_duplicate_ids(tmp_path):
+    """
+    Verify create_reproducible_splits detects duplicate IDs within partitions
+    and across partitions in an existing splits.json.
+    """
+    samples = [
+        {"pair_id": "tile_001", "pre_img_path": "", "post_img_path": ""},
+        {"pair_id": "tile_002", "pre_img_path": "", "post_img_path": ""},
+        {"pair_id": "tile_003", "pre_img_path": "", "post_img_path": ""}
+    ]
+    # 1. Duplicate within partition
+    splits_file = os.path.join(tmp_path, "splits.json")
+    with open(splits_file, "w", encoding="utf-8") as f:
+        json.dump({
+            "train": ["tile_001", "tile_001"],
+            "val": ["tile_002"],
+            "test": ["tile_003"]
+        }, f)
+
+    with pytest.raises(ValueError) as excinfo_within:
+        create_reproducible_splits(samples, output_dir=str(tmp_path))
+    assert "Duplicate sample IDs detected within 'train'" in str(excinfo_within.value)
+
+    # 2. Duplicate across partitions (overlap)
+    with open(splits_file, "w", encoding="utf-8") as f:
+        json.dump({
+            "train": ["tile_001"],
+            "val": ["tile_002"],
+            "test": ["tile_001"]
+        }, f)
+
+    with pytest.raises(ValueError) as excinfo_across:
+        create_reproducible_splits(samples, output_dir=str(tmp_path))
+    assert "Duplicate sample IDs detected across partitions" in str(excinfo_across.value)
+
+
+def test_saved_split_validation_success_valid_split(tmp_path):
+    """
+    Verify create_reproducible_splits successfully loads a valid splits.json
+    and preserves exact sample mappings and ordering.
+    """
+    samples = [
+        {"pair_id": "tile_001", "pre_img_path": "pre1", "post_img_path": "post1"},
+        {"pair_id": "tile_002", "pre_img_path": "pre2", "post_img_path": "post2"},
+        {"pair_id": "tile_003", "pre_img_path": "pre3", "post_img_path": "post3"}
+    ]
+    splits_file = os.path.join(tmp_path, "splits.json")
+    original_content = {
+        "train": ["tile_001"],
+        "val": ["tile_002"],
+        "test": ["tile_003"]
+    }
+    with open(splits_file, "w", encoding="utf-8") as f:
+        json.dump(original_content, f)
+
+    splits = create_reproducible_splits(samples, output_dir=str(tmp_path), seed=999)
+
+    assert [s["pair_id"] for s in splits["train"]] == ["tile_001"]
+    assert [s["pair_id"] for s in splits["val"]] == ["tile_002"]
+    assert [s["pair_id"] for s in splits["test"]] == ["tile_003"]
+    assert splits["train"][0]["pre_img_path"] == "pre1"
+
+    # Verify file was not overwritten or mutated
+    with open(splits_file, "r", encoding="utf-8") as f:
+        reloaded = json.load(f)
+    assert reloaded == original_content
+
+
+@pytest.mark.parametrize("invalid_id, expected_repr", [
+    (123, "123"),
+    (None, "None"),
+    ("", "''"),
+    ("   ", "'   '")
+])
+def test_saved_split_validation_invalid_id_types_and_empty_strings(tmp_path, invalid_id, expected_repr):
+    """
+    Verify create_reproducible_splits raises ValueError identifying partition and invalid ID
+    when an ID is an integer, None, empty string, or whitespace-only string.
+    """
+    samples = [
+        {"pair_id": "tile_001", "pre_img_path": "", "post_img_path": ""},
+        {"pair_id": "tile_002", "pre_img_path": "", "post_img_path": ""},
+        {"pair_id": "tile_003", "pre_img_path": "", "post_img_path": ""}
+    ]
+    splits_file = os.path.join(tmp_path, "splits.json")
+    with open(splits_file, "w", encoding="utf-8") as f:
+        json.dump({
+            "train": [invalid_id],
+            "val": ["tile_002"],
+            "test": ["tile_003"]
+        }, f)
+
+    with pytest.raises(ValueError) as excinfo:
+        create_reproducible_splits(samples, output_dir=str(tmp_path))
+
+    err_msg = str(excinfo.value)
+    assert "Invalid sample ID" in err_msg
+    assert "partition 'train'" in err_msg
+    assert expected_repr in err_msg
+    assert "at least one non-whitespace character" in err_msg
+
+
+def test_evaluate_output_resolution_default_path(tmp_path):
+    """
+    Verify resolve_output_path preserves default output timestamp-suffix behavior
+    when default file exists and overwrite=False, and overwrites when overwrite=True.
+    """
+    from ml.evaluate import resolve_output_path
+
+    ckpt_path = os.path.join(tmp_path, "model.pth")
+    default_name = "eval_test_SiameseDamageUNet.json"
+    default_file = os.path.join(tmp_path, default_name)
+
+    # 1. Default file does not exist yet -> returns default path
+    out1 = resolve_output_path(None, ckpt_path, "test", "SiameseDamageUNet", overwrite=False)
+    assert out1 == default_file
+
+    # 2. Default file exists and overwrite=False -> appends timestamp suffix
+    with open(default_file, "w", encoding="utf-8") as f:
+        f.write('{"sentinel": 1}')
+
+    out2 = resolve_output_path(None, ckpt_path, "test", "SiameseDamageUNet", overwrite=False)
+    assert out2 != default_file
+    assert "eval_test_SiameseDamageUNet_" in out2
+    assert out2.endswith(".json")
+
+    # Original file is unmodified
+    with open(default_file, "r", encoding="utf-8") as f:
+        assert f.read() == '{"sentinel": 1}'
+
+    # 3. Default file exists and overwrite=True -> returns default path
+    out3 = resolve_output_path(None, ckpt_path, "test", "SiameseDamageUNet", overwrite=True)
+    assert out3 == default_file
+
+
+def test_evaluate_output_resolution_timestamp_collision(tmp_path, monkeypatch):
+    """
+    Verify resolve_output_path generates a collision-free unique suffix when the
+    timestamp-suffixed default filename already exists, leaving all existing files unchanged.
+    """
+    from datetime import datetime
+    import ml.evaluate
+    from ml.evaluate import resolve_output_path
+
+    class MockDateTime:
+        @classmethod
+        def utcnow(cls):
+            return datetime(2026, 10, 23, 12, 0, 0)
+
+    monkeypatch.setattr(ml.evaluate, "datetime", MockDateTime)
+
+    ckpt_path = os.path.join(tmp_path, "model.pth")
+    default_file = os.path.join(tmp_path, "eval_test_SiameseDamageUNet.json")
+    with open(default_file, "w", encoding="utf-8") as f:
+        f.write('{"sentinel": "default_original"}')
+
+    # Pre-create the exact collision file for this mock timestamp (20261023_120000)
+    collision_file_0 = os.path.join(tmp_path, "eval_test_SiameseDamageUNet_20261023_120000.json")
+    with open(collision_file_0, "w", encoding="utf-8") as f:
+        f.write('{"sentinel": "collision_0_original"}')
+
+    # Pre-create the first incremented collision file (_1)
+    collision_file_1 = os.path.join(tmp_path, "eval_test_SiameseDamageUNet_20261023_120000_1.json")
+    with open(collision_file_1, "w", encoding="utf-8") as f:
+        f.write('{"sentinel": "collision_1_original"}')
+
+    # Resolve output path: should skip default, collision_0, and collision_1, producing _2
+    resolved_path = resolve_output_path(None, ckpt_path, "test", "SiameseDamageUNet", overwrite=False)
+    expected_path = os.path.join(tmp_path, "eval_test_SiameseDamageUNet_20261023_120000_2.json")
+    assert resolved_path == expected_path
+
+    # Verify none of the existing files were modified or overwritten
+    with open(default_file, "r", encoding="utf-8") as f:
+        assert f.read() == '{"sentinel": "default_original"}'
+    with open(collision_file_0, "r", encoding="utf-8") as f:
+        assert f.read() == '{"sentinel": "collision_0_original"}'
+    with open(collision_file_1, "r", encoding="utf-8") as f:
+        assert f.read() == '{"sentinel": "collision_1_original"}'
+    assert not os.path.exists(expected_path)
+
+
+def test_evaluate_output_resolution_explicit_path_and_overwrite(tmp_path):
+    """
+    Verify resolve_output_path prevents overwriting explicit output file unless
+    overwrite=True, raising FileExistsError without modifying the file.
+    """
+    from ml.evaluate import resolve_output_path
+
+    ckpt_path = os.path.join(tmp_path, "model.pth")
+    explicit_file = os.path.join(tmp_path, "custom_eval.json")
+
+    # 1. Explicit file does not exist -> returns explicit file
+    out1 = resolve_output_path(explicit_file, ckpt_path, "test", "SiameseDamageUNet", overwrite=False)
+    assert out1 == explicit_file
+
+    # 2. Explicit file exists and overwrite=False -> raises FileExistsError
+    with open(explicit_file, "w", encoding="utf-8") as f:
+        f.write('{"sentinel": 999}')
+
+    with pytest.raises(FileExistsError) as excinfo:
+        resolve_output_path(explicit_file, ckpt_path, "test", "SiameseDamageUNet", overwrite=False)
+
+    assert "already exists" in str(excinfo.value)
+    assert "Pass --overwrite" in str(excinfo.value)
+
+    # Verify original file was not modified
+    with open(explicit_file, "r", encoding="utf-8") as f:
+        assert f.read() == '{"sentinel": 999}'
+
+    # 3. Explicit file exists and overwrite=True -> permits overwrite
+    out3 = resolve_output_path(explicit_file, ckpt_path, "test", "SiameseDamageUNet", overwrite=True)
+    assert out3 == explicit_file
+
+
+def test_evaluate_cli_explicit_output_overwrite_protection(tmp_path, monkeypatch):
+    """
+    Verify evaluate CLI exits with code 1 and error message without modifying
+    existing explicit output file when --overwrite is omitted.
+    """
+    from ml.evaluate import main
+
+    existing_out = os.path.join(tmp_path, "target_report.json")
+    with open(existing_out, "w", encoding="utf-8") as f:
+        f.write('{"sentinel": "untouched"}')
+
+    # Invoke evaluate with explicit output_json that already exists
+    test_args = [
+        "evaluate.py",
+        "--checkpoint", os.path.join(tmp_path, "dummy.pth"),
+        "--output-json", existing_out
+    ]
+    monkeypatch.setattr(sys, "argv", test_args)
+
+    with pytest.raises(SystemExit) as excinfo:
+        main()
+
+    assert excinfo.value.code == 1
+
+    # Verify existing file is completely unchanged
+    with open(existing_out, "r", encoding="utf-8") as f:
+        assert f.read() == '{"sentinel": "untouched"}'
+
+
+def test_detect_dataset_origin_false_provenance_claims(tmp_path):
+    """
+    Verify detect_dataset_origin does not treat self-declared provenance_verified: true,
+    provenance_source, or dataset_type: operational in a local JSON manifest as proof
+    of genuine data provenance, and confirms operational calibration is denied.
+    """
+    false_claim_dir = os.path.join(tmp_path, "falsely_claimed_operational")
+    os.makedirs(false_claim_dir, exist_ok=True)
+    with open(os.path.join(false_claim_dir, "dataset_manifest.json"), "w", encoding="utf-8") as f:
+        json.dump({
+            "dataset_name": "Fabricated Operational xBD Dataset",
+            "dataset_type": "verified_operational",
+            "is_synthetic": False,
+            "provenance_verified": True,
+            "provenance_source": "untrusted_self_declared_text"
+        }, f)
+
+    res = detect_dataset_origin(false_claim_dir)
+    assert res["is_synthetic"] is False
+    assert res["is_unknown_origin"] is True
+    assert res["is_operational"] is False
+    assert res["dataset_type"] == "unverified_provenance"
+    assert "independent trusted" in res["disqualification_reason"].lower()
+
+    # Confirm passing these origin fields to calibration computation strictly denies certification
+    probs = np.full((100, 2), 0.5)
+    targets = np.zeros(100, dtype=np.int64)
+    cal = compute_calibration_metrics(
+        probs,
+        targets,
+        num_tiles=60,
+        is_synthetic_benchmark=res["is_synthetic"],
+        is_unknown_origin=res["is_unknown_origin"],
+        is_operational=res["is_operational"],
+        provenance_denial_reason=res["disqualification_reason"]
+    )
+    assert cal["is_calibrated"] is False
+    assert cal["certification_status"] == "UNCERTIFIED_CALIBRATION"
+    assert any("independent trusted" in r.lower() or "unverified" in r.lower() for r in cal["disqualification_reasons"])
+
+
+@pytest.mark.parametrize("malformed_root", [
+    None,
+    [],
+    ["item1", "item2"],
+    "a raw string root",
+    12345,
+    True
+])
+def test_detect_dataset_origin_malformed_manifest_roots(tmp_path, malformed_root):
+    """
+    Verify detect_dataset_origin safely handles manifests whose root JSON value
+    is not a dictionary (e.g. null, list, string, number, boolean) without crashing
+    with an AttributeError, classifying origin as unknown and denying calibration.
+    """
+    malformed_dir = os.path.join(tmp_path, f"malformed_test_{type(malformed_root).__name__}")
+    os.makedirs(malformed_dir, exist_ok=True)
+    with open(os.path.join(malformed_dir, "dataset_manifest.json"), "w", encoding="utf-8") as f:
+        json.dump(malformed_root, f)
+
+    res = detect_dataset_origin(malformed_dir)
+    assert res["manifest_found"] is True
+    assert res["manifest"] == {}
+    assert res["is_synthetic"] is False
+    assert res["is_unknown_origin"] is True
+    assert res["is_operational"] is False
+    assert res["dataset_type"] == "unknown_origin"
+    assert "malformed" in res["disqualification_reason"].lower()
+    assert "Operational calibration cannot be certified" in res["notice"]
+
+    # Confirm operational calibration certification is strictly denied
+    probs = np.full((100, 2), 0.5)
+    targets = np.zeros(100, dtype=np.int64)
+    cal = compute_calibration_metrics(
+        probs,
+        targets,
+        num_tiles=60,
+        is_synthetic_benchmark=res["is_synthetic"],
+        is_unknown_origin=res["is_unknown_origin"],
+        is_operational=res["is_operational"],
+        provenance_denial_reason=res["disqualification_reason"]
+    )
+    assert cal["is_calibrated"] is False
+    assert cal["certification_status"] == "UNCERTIFIED_CALIBRATION"
+    assert any("malformed" in r.lower() or "unverified" in r.lower() for r in cal["disqualification_reasons"])
+
+
+def test_evaluate_split_selection_default_and_explicit(tmp_path):
+    """
+    Verify resolve_splits_path selects default checkpoint-directory split file,
+    and respects explicit --splits-file when supplied.
+    """
+    from ml.evaluate import resolve_splits_path
+
+    ckpt_dir = os.path.join(tmp_path, "ckpt_run")
+    os.makedirs(ckpt_dir, exist_ok=True)
+    ckpt_path = os.path.join(ckpt_dir, "model.pth")
+
+    # 1. Default checkpoint-directory split selection
+    default_splits = os.path.join(ckpt_dir, "splits.json")
+    with open(default_splits, "w", encoding="utf-8") as f:
+        f.write('{"sentinel": "default_split"}')
+
+    res_default = resolve_splits_path(ckpt_path)
+    assert res_default == default_splits
+
+    # 2. Explicit --splits-file selection
+    custom_dir = os.path.join(tmp_path, "custom_splits_dir")
+    os.makedirs(custom_dir, exist_ok=True)
+    custom_splits = os.path.join(custom_dir, "alt_splits.json")
+    with open(custom_splits, "w", encoding="utf-8") as f:
+        f.write('{"sentinel": "custom_split"}')
+
+    res_explicit = resolve_splits_path(ckpt_path, splits_file=custom_splits)
+    assert res_explicit == custom_splits
+
+
+def test_evaluate_split_selection_missing_files_fail_safely(tmp_path):
+    """
+    Verify resolve_splits_path raises FileNotFoundError when default or explicit
+    split file is missing, refusing to generate replacement splits.
+    """
+    from ml.evaluate import resolve_splits_path
+
+    empty_ckpt_dir = os.path.join(tmp_path, "empty_ckpt")
+    os.makedirs(empty_ckpt_dir, exist_ok=True)
+    ckpt_path = os.path.join(empty_ckpt_dir, "model.pth")
+
+    # 1. Missing default split file raises FileNotFoundError
+    with pytest.raises(FileNotFoundError) as excinfo_default:
+        resolve_splits_path(ckpt_path)
+    assert "splits.json" in str(excinfo_default.value)
+    assert "Replacement splits are not generated" in str(excinfo_default.value)
+
+    # 2. Missing explicitly specified split file raises FileNotFoundError
+    missing_explicit = os.path.join(tmp_path, "does_not_exist.json")
+    with pytest.raises(FileNotFoundError) as excinfo_explicit:
+        resolve_splits_path(ckpt_path, splits_file=missing_explicit)
+    assert "Explicitly specified split file does not exist" in str(excinfo_explicit.value)
+    assert "does_not_exist.json" in str(excinfo_explicit.value)
+
+
+def test_evaluate_cli_never_creates_new_split_when_missing(tmp_path, monkeypatch):
+    """
+    Verify evaluate CLI exits with code 1 and never creates a replacement splits.json
+    when checkpoint directory lacks splits.json, ignoring any unrelated splits.json in data_dir.
+    """
+    from ml.evaluate import main
+
+    data_dir = os.path.join(tmp_path, "data")
+    ckpt_dir = os.path.join(tmp_path, "empty_checkpoint_dir")
+    os.makedirs(data_dir, exist_ok=True)
+    os.makedirs(ckpt_dir, exist_ok=True)
+
+    # Place unrelated splits.json in data_dir
+    unrelated_data_splits = os.path.join(data_dir, "splits.json")
+    with open(unrelated_data_splits, "w", encoding="utf-8") as f:
+        f.write('{"sentinel": "unrelated_data_split"}')
+
+    ckpt_file = os.path.join(ckpt_dir, "model.pth")
+    with open(ckpt_file, "w", encoding="utf-8") as f:
+        f.write("fake checkpoint")
+
+    test_args = [
+        "evaluate.py",
+        "--checkpoint", ckpt_file,
+        "--data-dir", data_dir
+    ]
+    monkeypatch.setattr(sys, "argv", test_args)
+
+    with pytest.raises(SystemExit) as excinfo:
+        main()
+
+    assert excinfo.value.code == 1
+
+    # Verify that evaluate never generated a splits.json in checkpoint dir
+    assert not os.path.exists(os.path.join(ckpt_dir, "splits.json"))
