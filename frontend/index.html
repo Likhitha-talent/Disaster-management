@@ -577,7 +577,7 @@
                   <option value="major_damage">Major Damage</option>
                   <option value="destroyed">Destroyed</option>
                 </select>
-                <button onclick="submitHumanReview()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-md transition-all">
+                <button id="btn-confirm-review" onclick="submitHumanReview()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-md transition-all">
                   Confirm
                 </button>
               </div>
@@ -1053,10 +1053,24 @@
       document.getElementById('insp-content').classList.remove('hidden');
     }
 
+    function inspectBuildingById(bldgId) {
+      const b = allBuildings.find(item => item.properties && item.properties.building_id === bldgId);
+      if (b) {
+        inspectBuilding(b);
+      }
+    }
+
     async function submitHumanReview() {
-      if (!selectedBuilding) return;
+      if (!selectedBuilding || !selectedBuilding.properties) return;
       const bldgId = selectedBuilding.properties.building_id;
       const newClass = document.getElementById('review-override-select').value;
+      const btn = document.getElementById('btn-confirm-review');
+      const defaultBtnClass = "bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-md transition-all";
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = "Saving...";
+      }
 
       try {
         const res = await fetch(`${API_BASE}/projects/${PROJECT_ID}/buildings/${bldgId}/review`, {
@@ -1070,14 +1084,66 @@
 
         if (res.ok) {
           const data = await res.json();
-          selectedBuilding.properties = data.building.properties;
+          // Update matching building in master allBuildings array
+          const target = allBuildings.find(b => b.properties && b.properties.building_id === bldgId);
+          if (target) {
+            target.properties = data.building.properties;
+            selectedBuilding = target;
+          } else {
+            selectedBuilding.properties = data.building.properties;
+          }
+
           inspectBuilding(selectedBuilding);
           renderBuildings(allBuildings);
           updateFlaggedList();
           await refreshProjectSummary();
+
+          // Success feedback
+          if (btn) {
+            btn.className = "bg-emerald-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-md transition-all";
+            btn.innerText = "Confirmed";
+            setTimeout(() => {
+              if (btn) {
+                btn.className = defaultBtnClass;
+                btn.innerText = "Confirm";
+                btn.disabled = false;
+              }
+            }, 2000);
+          }
+        } else {
+          let errDetail = "Save failed";
+          try {
+            const errData = await res.json();
+            if (errData && errData.detail) errDetail = errData.detail;
+          } catch (_) {}
+          console.error(`Review save failed for ${bldgId}:`, errDetail);
+
+          // Failure feedback
+          if (btn) {
+            btn.className = "bg-rose-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-md transition-all";
+            btn.innerText = "Failed";
+            setTimeout(() => {
+              if (btn) {
+                btn.className = defaultBtnClass;
+                btn.innerText = "Confirm";
+                btn.disabled = false;
+              }
+            }, 2500);
+          }
         }
       } catch (err) {
-        console.warn("Saved locally.");
+        console.error("Network or execution error saving review:", err);
+        if (btn) {
+          btn.className = "bg-rose-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-md transition-all";
+          btn.innerText = "Error";
+          setTimeout(() => {
+            if (btn) {
+              btn.className = defaultBtnClass;
+              btn.innerText = "Confirm";
+              btn.disabled = false;
+            }
+          }, 2500);
+        }
       }
     }
 
@@ -1163,7 +1229,7 @@
           </div>
           <div class="flex items-center gap-2">
             <span class="text-amber-400 font-mono text-[11px]">${(p.confidence * 100).toFixed(0)}%</span>
-            <button onclick='inspectBuilding(${JSON.stringify(b)})' class="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-semibold px-2 py-1 rounded">Inspect</button>
+            <button onclick="inspectBuildingById('${p.building_id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-semibold px-2 py-1 rounded">Inspect</button>
           </div>
         `;
         list.appendChild(item);
